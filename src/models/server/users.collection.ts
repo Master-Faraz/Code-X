@@ -1,61 +1,31 @@
-import { IndexType, Permission } from "node-appwrite";
-import { db, userCollection } from "../name";
-import { databases } from "./config";
+import { IndexType, Permission } from 'node-appwrite';
+import { db, userCollection } from '../name';
+import { databases } from './config';
 
 export default async function createUserCollection() {
   // Creating the collection and setting permission
-  await databases.createCollection(db, userCollection, userCollection, [
-    Permission.create("users"),
-  ]);
+  await databases.createCollection(db, userCollection, userCollection, [Permission.create('users')]);
 
-  console.log("User collection created successfully");
+  console.log('User collection created successfully');
 
   //   Creating attributes
   await Promise.all([
-    databases.createStringAttribute(db, userCollection, "uid", 100, true),
-    databases.createStringAttribute(db, userCollection, "name", 100, true),
-    databases.createStringAttribute(db, userCollection, "email", 100, true),
-    databases.createStringAttribute(
-      db,
-      userCollection,
-      "profile_pic",
-      100,
-      true
-    ),
-    databases.createIntegerAttribute(
-      db,
-      userCollection,
-      "credits",
-      false,
-      0,
-      1000,
-      0
-    ),
-    databases.createBooleanAttribute(db, userCollection, "is_verified", false),
+    databases.createStringAttribute(db, userCollection, 'uid', 100, true),
+    databases.createStringAttribute(db, userCollection, 'name', 100, true),
+    databases.createStringAttribute(db, userCollection, 'email', 100, true),
+    databases.createStringAttribute(db, userCollection, 'profile_pic', 100, true),
+    databases.createIntegerAttribute(db, userCollection, 'credits', false, 0, 1000, 0),
+    databases.createBooleanAttribute(db, userCollection, 'is_verified', false),
 
-    databases.createDatetimeAttribute(db, userCollection, "created_at", true),
-    databases.createDatetimeAttribute(db, userCollection, "updated_at", true),
+    databases.createDatetimeAttribute(db, userCollection, 'created_at', true),
+    databases.createDatetimeAttribute(db, userCollection, 'updated_at', true)
   ]);
 
-  console.log("User attributes created successfully");
+  console.log('User attributes created successfully');
 
   await Promise.all([
-    databases.createIndex(
-      db,
-      userCollection,
-      "uid_index",
-      IndexType.Unique,
-      ["uid"],
-      ["asc"]
-    ),
-    databases.createIndex(
-      db,
-      userCollection,
-      "email_index",
-      IndexType.Unique,
-      ["email"],
-      ["asc"]
-    ),
+    databases.createIndex(db, userCollection, 'uid_index', IndexType.Unique, ['uid'], ['asc']),
+    databases.createIndex(db, userCollection, 'email_index', IndexType.Unique, ['email'], ['asc'])
   ]);
 }
 
