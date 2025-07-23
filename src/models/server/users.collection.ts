@@ -13,6 +13,7 @@ export default async function createUserCollection() {
     databases.createStringAttribute(db, userCollection, 'uid', 100, true),
     databases.createStringAttribute(db, userCollection, 'name', 100, true),
     databases.createStringAttribute(db, userCollection, 'email', 100, true),
+    databases.createStringAttribute(db, userCollection, 'phone', 12, true),
     databases.createStringAttribute(db, userCollection, 'profile_pic', 100, false),
     databases.createIntegerAttribute(db, userCollection, 'credits', false, 0, 1000, 0),
     databases.createBooleanAttribute(db, userCollection, 'is_verified', false),
@@ -22,6 +23,9 @@ export default async function createUserCollection() {
   ]);
 
   console.log('User attributes created successfully');
+
+  // Delaying so that the attributes creted successfully before index creation
+  await new Promise((resolve) => setTimeout(resolve, 60000));
 
   await Promise.all([
     databases.createIndex(db, userCollection, 'idx_uid', IndexType.Unique, ['uid'], ['asc']),

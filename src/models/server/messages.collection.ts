@@ -27,6 +27,10 @@ export default async function createMessagesCollection() {
 
   console.log('Messages attributes created successfully');
 
+  // Delaying so that the attributes creted successfully before index creation
+  await new Promise((resolve) => setTimeout(resolve, 60000));
+  // await new Promise((resolve) => setTimeout(resolve, 25000));
+
   //   Indexes
 
   await Promise.all([

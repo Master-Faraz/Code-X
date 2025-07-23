@@ -111,6 +111,10 @@ export default async function createRoomListingCollection() {
 
   console.log('Listings attributes created successfully');
 
+  // Delaying so that the attributes creted successfully before index creation
+  await new Promise((resolve) => setTimeout(resolve, 60000));
+  // await new Promise((resolve) => setTimeout(resolve, 30000));
+
   // Indexes
   await Promise.all([
     databases.createIndex(db, listingCollection, 'idx_id', IndexType.Unique, ['id'], ['asc']),

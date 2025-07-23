@@ -25,6 +25,10 @@ export default async function createSavedPostsCollection() {
 
   console.log('Saved Posts  attributes created successfully');
 
+  // Delaying so that the attributes creted successfully before index creation
+  await new Promise((resolve) => setTimeout(resolve, 60000));
+  // await new Promise((resolve) => setTimeout(resolve, 15000));
+
   //   Indexes
 
   await Promise.all([

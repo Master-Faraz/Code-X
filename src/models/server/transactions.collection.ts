@@ -29,8 +29,11 @@ export default async function createTransactionCollection() {
 
   console.log('Transaction attributes created successfully');
 
-  //   Indexes
+  // Delaying so that the attributes creted successfully before index creation
+  await new Promise((resolve) => setTimeout(resolve, 60000));
+  // await new Promise((resolve) => setTimeout(resolve, 35000));
 
+  //   Indexes
   await Promise.all([
     databases.createIndex(db, transactionCollection, 'idx_id', IndexType.Unique, ['id']),
     databases.createIndex(db, transactionCollection, 'idx_user_id', IndexType.Key, ['user_id']),

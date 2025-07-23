@@ -25,6 +25,10 @@ export default async function createChatCollection() {
 
   console.log('Chats attributes created successfully');
 
+  // Delaying so that the attributes creted successfully before index creation
+  await new Promise((resolve) => setTimeout(resolve, 60000));
+  // await new Promise((resolve) => setTimeout(resolve, 30000));
+
   //   Indexes
 
   await Promise.all([
