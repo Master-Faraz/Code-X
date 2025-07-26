@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { persist } from 'zustand/middleware/persist';
+import { persist } from 'zustand/middleware';
 
 import { AppwriteException, ID, Models } from 'appwrite';
 import { account } from '@/models/client/config';
@@ -25,7 +25,7 @@ interface IAuthStore {
   logout(): void;
 }
 
-//  Create Store
+//  Create Store hook
 export const useAuthStore = create<IAuthStore>()(
   persist(
     immer((set) => ({
