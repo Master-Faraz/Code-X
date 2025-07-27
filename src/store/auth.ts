@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { persist } from 'zustand/middleware';
 
-import { AppwriteException, ID, Models } from 'appwrite';
+import { AppwriteException, ID, Models, OAuthProvider } from 'appwrite';
 import { account } from '@/models/client/config';
 
 // Step 1 : Interface Defination
@@ -21,6 +21,7 @@ interface IAuthStore {
   setHydrated(): void;
   verifySession(): Promise<void>;
   login(email: string, password: string): Promise<{ success: boolean; error?: AppwriteException | null }>;
+  GoogleLogin(): Promise<{ success: boolean; error?: AppwriteException | null }>;
   createAccount(name: string, email: string, password: string): Promise<{ success: boolean; error?: AppwriteException | null }>;
   logout(): void;
 }
@@ -72,6 +73,36 @@ export const useAuthStore = create<IAuthStore>()(
           //   })
 
           set({ session, user, jwt });
+
+          return { success: true };
+        } catch (error) {
+          console.log(error);
+          return {
+            success: false,
+            error: error instanceof AppwriteException ? error : null
+          };
+        }
+      },
+
+      async GoogleLogin() {
+        try {
+          const session = account.createOAuth2Session(OAuthProvider.Google, 'http://localhost:3000/', 'http://localhost:3000/register');
+
+          console.log(typeof session);
+          console.log(session);
+
+          const [user, { jwt }] = await Promise.all([account.get<any>(), account.createJWT()]);
+
+          console.log('User');
+          console.log(user);
+          console.log('JWT');
+          console.log(jwt);
+
+          //   if (!user.prefs?.reputation) await account.updatePrefs<any>({
+          //     reputation: 0
+          //   })
+
+          // set({ session, user, jwt });
 
           return { success: true };
         } catch (error) {

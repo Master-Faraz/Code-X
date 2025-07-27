@@ -1,9 +1,9 @@
-import { NextResponse, NextRequest } from "next/server";
-import getOrCreateDB from "./models/server/dbSetup";
+import { NextResponse, NextRequest } from 'next/server';
+// import getOrCreateDB from "./models/server/dbSetup";
 
 // This function can be marked `async` if using `await` inside
 export async function middleware(request: NextRequest) {
-  await Promise.all([getOrCreateDB()]);
+  // await Promise.all([getOrCreateDB()]);
   return NextResponse.next();
 }
 
@@ -15,5 +15,5 @@ export const config = {
   - favicon.com
 
   */
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)']
 };

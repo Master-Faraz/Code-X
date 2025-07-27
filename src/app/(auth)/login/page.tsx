@@ -1,77 +1,48 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 // import axios from "axios"
-import { toast } from "sonner";
+import { toast } from 'sonner';
 
-import { Form } from "@/components/ui/form";
-import { useRouter } from "next/navigation";
-import CustomFormField, { FormFieldType } from "@/components/CustomFormField";
-import Link from "next/link";
+import { Form } from '@/components/ui/form';
+import { useRouter } from 'next/navigation';
+import CustomFormField, { FormFieldType } from '@/components/CustomFormField';
+import Link from 'next/link';
+import { useAuthStore } from '@/store/auth';
 
 const formSchema = z.object({
-  email: z.string().email("Please enter a valid email."),
-  password: z
-    .string()
-    .min(6, { message: "Password must be at least 6 characters long." }),
+  email: z.string().email('Please enter a valid email.'),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters long.' })
 });
 
 const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { login, GoogleLogin } = useAuthStore();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
-
-  const handleLoginError = (error: any) => {
-    if (error.response) {
-      toast.error(
-        `Login Failed: ${
-          error.response.data?.message || "Server responded with an error"
-        }`
-      );
-    } else if (error.request) {
-      toast.error(
-        "Login Failed: No response from the server. Please try again."
-      );
-    } else {
-      toast.error(
-        `Login Failed: ${error.message || "An unexpected error occurred"}`
-      );
+      email: '',
+      password: ''
     }
-  };
+  });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setLoading(true);
     try {
-      const delay = (ms: number) =>
-        new Promise((resolve) => setTimeout(resolve, ms));
+      const response = await login(data.email, data.password);
+      if (response.error) throw response.error;
 
-      await delay(2000);
-      console.log(data);
-      toast.success("Logged in successfully");
-
-      // const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/login`, data, { withCredentials: true });
-
-      // // if (response.status !== 200) throw new Error("Internal Server Error");
-      // if (response.status !== 200) {
-      //     toast.error("Internal Server Error");
-
-      // }
-
-      // await new Promise(resolve => setTimeout(resolve, 800)); // Delay before navigation
-      // router.replace("/drawboard");
+      await new Promise((resolve) => setTimeout(resolve, 800)); // Delay before navigation
+      toast.success('Logged in successfully');
     } catch (error: any) {
-      handleLoginError(error);
+      console.log(error);
+      console.log('Error while creating account :: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -82,10 +53,7 @@ const LoginPage = () => {
       <div className="flex flex-col items-center justify-center   w-[500px] h-[700px] p-6 ">
         <h1 className="font-bold text-3xl mb-10">Log in to your account</h1>
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-6 w-full  "
-          >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full  ">
             <div></div>
 
             <CustomFormField
@@ -109,15 +77,25 @@ const LoginPage = () => {
             />
 
             <Button type="submit" disabled={loading} className="w-full">
-              {loading ? "Logging in..." : "Login"}
+              {loading ? 'Logging in...' : 'Login'}
             </Button>
           </form>
         </Form>
 
+        <Button
+          disabled={loading}
+          className="w-full mt-5"
+          onClick={async () => {
+            await GoogleLogin();
+          }}
+        >
+          {loading ? 'Logging in...' : 'Google'}
+        </Button>
+
         <div className="flex flex-col items-center justify-center space-y-2 mt-4 text-slate-500">
           <h1 className="text-sm">OR</h1>
           <p>
-            You don't have an account yet?{" "}
+            You don't have an account yet?{' '}
             <Link href="/register" className="text-cyan-500">
               Sign up
             </Link>
