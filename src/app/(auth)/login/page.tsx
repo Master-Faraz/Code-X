@@ -22,7 +22,7 @@ const formSchema = z.object({
 const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { login, GoogleLogin } = useAuthStore();
+  const { login } = useAuthStore();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -41,8 +41,7 @@ const LoginPage = () => {
       await new Promise((resolve) => setTimeout(resolve, 800)); // Delay before navigation
       toast.success('Logged in successfully');
     } catch (error: any) {
-      console.log(error);
-      console.log('Error while creating account :: ' + error.message);
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -81,16 +80,6 @@ const LoginPage = () => {
             </Button>
           </form>
         </Form>
-
-        <Button
-          disabled={loading}
-          className="w-full mt-5"
-          onClick={async () => {
-            await GoogleLogin();
-          }}
-        >
-          {loading ? 'Logging in...' : 'Google'}
-        </Button>
 
         <div className="flex flex-col items-center justify-center space-y-2 mt-4 text-slate-500">
           <h1 className="text-sm">OR</h1>

@@ -21,9 +21,8 @@ interface IAuthStore {
   setHydrated(): void;
   verifySession(): Promise<void>;
   login(email: string, password: string): Promise<{ success: boolean; error?: AppwriteException | null }>;
-  GoogleLogin(): Promise<{ success: boolean; error?: AppwriteException | null }>;
   createAccount(name: string, email: string, password: string): Promise<{ success: boolean; error?: AppwriteException | null }>;
-  logout(): void;
+  logout(): boolean;
 }
 
 //  Create Store hook
@@ -45,6 +44,7 @@ export const useAuthStore = create<IAuthStore>()(
       async verifySession() {
         try {
           const session = await account.getSession('current'); //.   Getting the session
+          console.log(session);
           set({ session }); //   setting the session state
         } catch (error) {
           console.log(error);
@@ -84,42 +84,13 @@ export const useAuthStore = create<IAuthStore>()(
         }
       },
 
-      async GoogleLogin() {
+      logout: async () => {
         try {
-          const session = account.createOAuth2Session(OAuthProvider.Google, 'http://localhost:3000/', 'http://localhost:3000/register');
-
-          console.log(typeof session);
-          console.log(session);
-
-          const [user, { jwt }] = await Promise.all([account.get<any>(), account.createJWT()]);
-
-          console.log('User');
-          console.log(user);
-          console.log('JWT');
-          console.log(jwt);
-
-          //   if (!user.prefs?.reputation) await account.updatePrefs<any>({
-          //     reputation: 0
-          //   })
-
-          // set({ session, user, jwt });
-
-          return { success: true };
-        } catch (error) {
-          console.log(error);
-          return {
-            success: false,
-            error: error instanceof AppwriteException ? error : null
-          };
-        }
-      },
-
-      async logout() {
-        try {
-          await account.deleteSessions();
+          await account.deleteSessions(); // properly await it
           set({ session: null, jwt: null, user: null });
+          return true;
         } catch (error) {
-          console.log(error);
+          return false;
         }
       }
     })),

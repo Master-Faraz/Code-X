@@ -2,6 +2,7 @@
 import { useAuthStore } from '@/store/auth';
 import { useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
+import { Toaster } from '@/components/ui/sonner';
 
 const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   // Getting the session
@@ -17,7 +18,12 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   if (session) return null;
 
   //   If no session then load the children
-  return <div className=" w-full h-screen flex items-center justify-center">{children}</div>;
+  return (
+    <div className=" w-full h-screen flex items-center justify-center">
+      {children}
+      <Toaster position="top-right" richColors={true} />
+    </div>
+  );
 };
 
 export default AuthLayout;
