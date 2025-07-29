@@ -6,15 +6,19 @@ import { Toaster } from '@/components/ui/sonner';
 
 const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   // Getting the session
-  const { session } = useAuthStore();
+  const { session, hydrated } = useAuthStore();
 
-  const router = useRouter(); //.   Using the lagacy router here
+  const router = useRouter();
 
+  // If there is session then no need to be in register and login page. Hydrated used to avoid flickering
   useEffect(() => {
-    if (session) router.push('/');
-  }, [session, router]);
+    if (hydrated && session) router.push('/');
+  }, [hydrated, session, router]);
 
-  //   if session then we don't require the auth page
+  // Prevent any UI rendering until hydration is complete
+  if (!hydrated) return null;
+
+  // If session exists after hydration, block auth page
   if (session) return null;
 
   //   If no session then load the children

@@ -22,7 +22,7 @@ interface IAuthStore {
   verifySession(): Promise<void>;
   login(email: string, password: string): Promise<{ success: boolean; error?: AppwriteException | null }>;
   createAccount(name: string, email: string, password: string): Promise<{ success: boolean; error?: AppwriteException | null }>;
-  logout(): boolean;
+  logout(): Promise<{ success: boolean; error?: AppwriteException | null }>;
 }
 
 //  Create Store hook
@@ -86,11 +86,15 @@ export const useAuthStore = create<IAuthStore>()(
 
       logout: async () => {
         try {
-          await account.deleteSessions(); // properly await it
+          await account.deleteSessions();
           set({ session: null, jwt: null, user: null });
-          return true;
+          return { success: true };
         } catch (error) {
-          return false;
+          // console.error(error);
+          return {
+            success: false,
+            error: error instanceof AppwriteException ? error : null
+          };
         }
       }
     })),

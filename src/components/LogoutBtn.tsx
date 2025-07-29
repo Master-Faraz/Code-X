@@ -8,12 +8,13 @@ const LogoutBtn = () => {
 
   const handleLogout = async () => {
     try {
-      const response = logout();
-      if (response === true) toast.success('Logout successfully');
-      else toast.error('Logout un-successfully');
-    } catch (error) {
-      console.log(error);
-      toast.error('Logout un-successfully');
+      const response = await logout();
+
+      if (response.success) toast.success('Logout successfully');
+      else throw response.error;
+    } catch (error: any) {
+      // console.log(error);
+      toast.error(error?.message || 'Logout Unsuccessfull');
     }
 
     // const response = await

@@ -5,11 +5,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-// import axios from "axios"
 import { toast } from 'sonner';
 
 import { Form } from '@/components/ui/form';
-import { useRouter } from 'next/navigation';
 import CustomFormField, { FormFieldType } from '@/components/CustomFormField';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth';
@@ -21,7 +19,6 @@ const formSchema = z.object({
 
 const LoginPage = () => {
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const { login } = useAuthStore();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -38,7 +35,7 @@ const LoginPage = () => {
       const response = await login(data.email, data.password);
       if (response.error) throw response.error;
 
-      await new Promise((resolve) => setTimeout(resolve, 800)); // Delay before navigation
+      // await new Promise((resolve) => setTimeout(resolve, 800)); // Delay before navigation
       toast.success('Logged in successfully');
     } catch (error: any) {
       toast.error(error.message);
