@@ -49,6 +49,20 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
             </div>
           )}
 
+          {!props.iconSrc && props.name === 'username' && (
+            <div className="flex items-center justify-center ml-2 border-none">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M19 21C19 17.6863 16.3137 15 13 15H11C7.68629 15 5 17.6863 5 21M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z"
+                  stroke="#666666"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+          )}
+
           <FormControl>
             <Input
               placeholder={props.placeholder}
@@ -83,7 +97,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
         <div className={`flex rounded-md border hover:shadow-xl transition ease-in-out  duration-400`}>
           {props.iconSrc && <Image src={props.iconSrc} height={24} width={24} alt={props.iconAlt || 'icon'} className="ml-2" />}
 
-          {!props.iconSrc && props.name === 'password' && (
+          {!props.iconSrc && (props.name === 'password' || 'confirmPassword') && (
             <div className="flex items-center justify-center ml-2">
               <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#666666">
                 <path d="M80-200v-80h800v80H80Zm46-242-52-30 34-60H40v-60h68l-34-58 52-30 34 58 34-58 52 30-34 58h68v60h-68l34 60-52 30-34-60-34 60Zm320 0-52-30 34-60h-68v-60h68l-34-58 52-30 34 58 34-58 52 30-34 58h68v60h-68l34 60-52 30-34-60-34 60Zm320 0-52-30 34-60h-68v-60h68l-34-58 52-30 34 58 34-58 52 30-34 58h68v60h-68l34 60-52 30-34-60-34 60Z" />

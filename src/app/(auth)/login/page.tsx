@@ -36,7 +36,7 @@ const LoginPage = () => {
       const response = await login(data.email, data.password);
       if (response.error) throw response.error;
 
-      // await new Promise((resolve) => setTimeout(resolve, 800)); // Delay before navigation
+      // await new Promise((resolve) => setTimeout(resolve, 500)); // Delay before toast
       toast.success('Logged in successfully');
     } catch (error: any) {
       toast.error(error.message);
@@ -47,7 +47,7 @@ const LoginPage = () => {
 
   return (
     <main className="w-full h-screen flex items-center justify-around  ">
-      <section className="flex flex-col items-center justify-center   w-[500px] p-6 ">
+      <section className="flex flex-col items-center justify-center w-[500px] p-6 ">
         <h1 className="font-bold text-3xl mb-10">Log in to your account</h1>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full  ">
@@ -80,7 +80,9 @@ const LoginPage = () => {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full hover:shadow-2xl/10 bg-[#263238] hover:bg-neutral-950 text-white transition-all duration-300 hover:cursor-pointer"
+              className={`w-full hover:shadow-2xl/10 bg-[#263238] hover:bg-neutral-950 text-white transition-all duration-300 hover:cursor-pointer ${
+                loading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
             >
               {loading ? 'Logging in...' : 'Login'}
             </Button>
