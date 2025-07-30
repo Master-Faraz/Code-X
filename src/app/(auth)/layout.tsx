@@ -23,7 +23,7 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
 
   //   If no session then load the children
   return (
-    <div className=" w-full h-screen flex items-center justify-center">
+    <div className=" w-full h-screen flex items-center justify-center bg-gradient-to-br from-[#fff1eb] to-[#ace0f9]">
       {children}
       <Toaster position="top-right" richColors={true} />
     </div>

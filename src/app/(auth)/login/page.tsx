@@ -11,6 +11,7 @@ import { Form } from '@/components/ui/form';
 import CustomFormField, { FormFieldType } from '@/components/CustomFormField';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth';
+import Image from 'next/image';
 
 const formSchema = z.object({
   email: z.string().email('Please enter a valid email.'),
@@ -45,8 +46,8 @@ const LoginPage = () => {
   };
 
   return (
-    <main className="w-full h-screen flex items-center justify-center ">
-      <div className="flex flex-col items-center justify-center   w-[500px] h-[700px] p-6 ">
+    <main className="w-full h-screen flex items-center justify-around  ">
+      <section className="flex flex-col items-center justify-center   w-[500px] p-6 ">
         <h1 className="font-bold text-3xl mb-10">Log in to your account</h1>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full  ">
@@ -58,7 +59,6 @@ const LoginPage = () => {
               name="email"
               label="Email"
               placeholder="Please enter your email"
-              //   iconSrc="/images/icons/email.svg"
               iconAlt="email"
             />
 
@@ -67,12 +67,21 @@ const LoginPage = () => {
               control={form.control}
               name="password"
               label="Password"
-              placeholder=""
-              //   iconSrc="/images/icons/password.svg"
+              placeholder="Please enter your password"
               iconAlt="Password"
             />
 
-            <Button type="submit" disabled={loading} className="w-full">
+            <div className="flex justify-end">
+              <Link href="/forgot-password" className="text-sm text-[#3d3d3d] hover:text-[#36a5f9] hover:underline">
+                Forgot password?
+              </Link>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full hover:shadow-2xl/10 bg-[#263238] hover:bg-neutral-950 text-white transition-all duration-300 hover:cursor-pointer"
+            >
               {loading ? 'Logging in...' : 'Login'}
             </Button>
           </form>
@@ -81,13 +90,18 @@ const LoginPage = () => {
         <div className="flex flex-col items-center justify-center space-y-2 mt-4 text-slate-500">
           <h1 className="text-sm">OR</h1>
           <p>
-            You don't have an account yet?{' '}
-            <Link href="/register" className="text-cyan-500">
+            You don't have an account yet? {'  '}
+            <Link href="/register" className="text-[#6fbcf7] font-bold hover:text-[#36a5f9]">
               Sign up
             </Link>
           </p>
         </div>
-      </div>
+      </section>
+
+      {/* Image section */}
+      <section className="w-[500px] h-[500px]  hidden lg:block">
+        <Image src="/images/login.svg" alt="login" height={500} width={500} />
+      </section>
     </main>
   );
 };

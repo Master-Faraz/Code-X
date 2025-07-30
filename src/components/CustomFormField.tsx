@@ -33,11 +33,11 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
   switch (props.fieldType) {
     case FormFieldType.INPUT:
       return (
-        <div className={`flex rounded-md border  `}>
+        <div className={`flex rounded-md border hover:shadow-xl transition ease-in-out duration-400 `}>
           {props.iconSrc && <Image src={props.iconSrc} height={24} width={24} alt={props.iconAlt || 'icon'} className="ml-2" />}
 
           {!props.iconSrc && props.name === 'email' && (
-            <div className="flex items-center justify-center ml-2">
+            <div className="flex items-center justify-center ml-2 border-none">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
                   d="M4 6L10 12M20 6L14 12M10 12L10.5858 12.5858C11.3668 13.3668 12.6332 13.3668 13.4142 12.5858L14 12M10 12L3.87868 18.1213M14 12L20.1213 18.1213M20.1213 18.1213C20.6642 17.5784 21 16.8284 21 16V7C21 5.89543 20.1046 5 19 5H5C3.89543 5 3 5.89543 3 7V16C3 16.8284 3.33579 17.5784 3.87868 18.1213M20.1213 18.1213C19.5784 18.6642 18.8284 19 18 19H6C5.17157 19 4.42157 18.6642 3.87868 18.1213"
@@ -53,7 +53,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
             <Input
               placeholder={props.placeholder}
               {...field}
-              className="text-[14px] leading-[18px] font-medium focus-visible:ring-0 focus-visible:ring-offset-0 text-dark-700 border-0"
+              className="text-sm leading-[18px] font-medium focus-visible:ring-0 focus-visible:ring-offset-0 text-[#3d3d3d] border-none"
             />
           </FormControl>
         </div>
@@ -63,7 +63,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
       return (
         <div className={`flex border-none rounded-tl-full rounded-bl-full`}>
           {props.iconSrc && (
-            <div className="bg-red-200  flex flex-col items-center justify-center px-2">
+            <div className=" flex flex-col items-center justify-center px-2">
               <Image src={props.iconSrc} height={24} width={24} alt={props.iconAlt || 'icon'} className="" />
             </div>
           )}
@@ -72,7 +72,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
             <Input
               placeholder={props.placeholder}
               {...field}
-              className="text-[14px] leading-[18px] font-medium focus-visible:ring-0 focus-visible:ring-offset-0  border-none bg-slate-200 rounded-tl-full rounded-bl-full hover:bg-slate-300"
+              className="text-[14px] leading-[18px] font-medium focus-visible:ring-0 focus-visible:ring-offset-0  border-none  rounded-tl-full rounded-bl-full hover:bg-slate-300"
             />
           </FormControl>
         </div>
@@ -80,7 +80,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
 
     case FormFieldType.PASSWORD:
       return (
-        <div className={`flex rounded-md border `}>
+        <div className={`flex rounded-md border hover:shadow-xl transition ease-in-out  duration-400`}>
           {props.iconSrc && <Image src={props.iconSrc} height={24} width={24} alt={props.iconAlt || 'icon'} className="ml-2" />}
 
           {!props.iconSrc && props.name === 'password' && (
@@ -96,11 +96,15 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
               placeholder={props.placeholder}
               {...field}
               type={showPassword ? 'text' : 'password'}
-              className="text-[14px] leading-[18px] font-medium focus-visible:ring-0 focus-visible:ring-offset-0 text-dark-700 border-0"
+              className="text-[14px] leading-[18px] font-medium focus-visible:ring-0 focus-visible:ring-offset-0 border-0 text-[#3d3d3d] "
             />
           </FormControl>
           <button type="button" className=" px-1" onClick={() => setShowPassword(!showPassword)}>
-            {showPassword ? <EyeOff size={20} className="text-[#919090]" /> : <Eye size={20} className="text-[#666666]" />}
+            {showPassword ? (
+              <EyeOff size={20} className="text-[#919090] hover:cursor-pointer" />
+            ) : (
+              <Eye size={20} className="text-[#666666] hover:cursor-pointer" />
+            )}
           </button>
         </div>
       );
@@ -111,7 +115,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
           <Textarea
             placeholder={props.placeholder}
             {...field}
-            className=" placeholder:text-dark-600 border-dark-500 focus-visible:ring-0 focus-visible:ring-offset-0 h-[100px] text-white"
+            className=" placeholder:text-[#3d3d3d] border-dark-500 focus-visible:ring-0 focus-visible:ring-offset-0 h-[100px] text-white"
             disabled={props.disabled}
           />
         </FormControl>
@@ -131,7 +135,7 @@ const CustomFormField = (props: CustomProps) => {
       name={name}
       render={({ field }) => (
         <FormItem className={`${className}`}>
-          {label && <FormLabel className="text-[16px] leading-[18px] font-bold text-white ">{label}</FormLabel>}
+          {label && <FormLabel className="text-[16px] leading-[18px] font-bold text-[#3d3d3d] ">{label}</FormLabel>}
           <RenderInput field={field} props={props} />
 
           <FormMessage className="text-red-400" />
