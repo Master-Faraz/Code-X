@@ -54,10 +54,10 @@ export const useAuthStore = create<IAuthStore>()(
       async createAccount(name: string, email: string, password: string) {
         try {
           const response = await account.create(ID.unique(), email, password, name);
-          console.log(response);
+          // console.log(response);
           return { success: true };
         } catch (error) {
-          console.log(error);
+          // console.log(error);
           return {
             success: false,
             error: error instanceof AppwriteException ? error : null

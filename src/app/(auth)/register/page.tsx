@@ -55,11 +55,11 @@ const RegisterForm = () => {
       await login(data.email, data.password);
       toast.success('Account Created Successfully');
     } catch (error: any) {
-      toast.error('Error ' + error.message);
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Delay before toast
-      toast.error('Something went wrong while creating account');
+      toast.error(error.message);
+      // await new Promise((resolve) => setTimeout(resolve, 1200)); // Delay before toast
+      // toast.error('Something went wrong while creating account');
 
-      console.log('Error while creating account :: ' + error?.message);
+      // console.log('Error while creating account :: ' + error?.message);
     } finally {
       setLoading(false);
     }
