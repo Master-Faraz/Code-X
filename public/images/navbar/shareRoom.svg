@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="600" height="500" viewBox="0 0 600 500" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- House Roof -->
+  <polygon points="50,200 300,50 550,200" fill="none" stroke="#000000" stroke-width="25"/>
+
+  <!-- House Walls -->
+  <line x1="100" y1="200" x2="100" y2="400" stroke="#000000" stroke-width="25"/>
+  <line x1="500" y1="200" x2="500" y2="400" stroke="#000000" stroke-width="25"/>
+
+  <!-- Central Share Circle -->
+  <circle cx="300" cy="200" r="80" fill="#000000"/>
+
+    <!-- Share Symbol -->
+    <circle cx="300" cy="200" r="18" fill="#ffffff"/>
+    <circle cx="260" cy="260" r="18" fill="#ffffff"/>
+    <circle cx="340" cy="260" r="18" fill="#ffffff"/>
+    <path d="M300,200 L260,260 M300,200 L340,260" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
+
+  <!-- Bottom Avatars -->
+  <g fill="#000000">
+    <!-- Left Avatar Circle -->
+    <circle cx="180" cy="380" r="60"/>
+    <!-- Middle Avatar Circle -->
+    <circle cx="300" cy="380" r="60"/>
+    <!-- Right Avatar Circle -->
+    <circle cx="420" cy="380" r="60"/>
+  </g>
+
+  <!-- Avatar Heads & Shoulders -->
+  <g fill="#ffffff">
+    <!-- Left Head and Shoulders -->
+    <circle cx="180" cy="350" r="20"/>
+    <ellipse cx="180" cy="395" rx="40" ry="25"/>
+    <!-- Middle Head and Shoulders -->
+    <circle cx="300" cy="350" r="20"/>
+    <ellipse cx="300" cy="395" rx="40" ry="25"/>
+    <!-- Right Head and Shoulders -->
+    <circle cx="420" cy="350" r="20"/>
+    <ellipse cx="420" cy="395" rx="40" ry="25"/>
+  </g>
+
+</svg>
+
