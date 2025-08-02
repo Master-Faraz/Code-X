@@ -1,19 +1,23 @@
 export const NAV_LINKS = [
   {
     title: 'Find Rooms',
-    path: '/'
+    path: '/',
+    img: '/images/navbar/room.svg'
   },
 
   {
     title: 'List Room',
-    path: '/'
+    path: '/',
+    img: '/images/navbar/shareRoom.svg'
   },
   {
     title: 'Ask AI',
-    path: '/'
+    path: '/',
+    img: '/images/navbar/ai.svg'
   },
   {
     title: 'Plans',
-    path: '/'
+    path: '/',
+    img: '/images/navbar/rupee.svg'
   }
 ];

@@ -34,7 +34,7 @@ const Navbar = () => {
       >
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-2 text-2xl font-bold">
-          <Image src="/images/logo.png" alt="Logo" width={40} height={40} />
+          <Image src="/images/logo.png" alt="Logo" width={40} height={40} priority />
         </Link>
 
         {/* Navigation Links (Desktop) */}
@@ -49,7 +49,7 @@ const Navbar = () => {
             }}
             enableHover
           >
-            {NAV_LINKS.map(({ title, path }) => (
+            {NAV_LINKS.map(({ title, path, img }) => (
               <Button
                 key={title}
                 className=" group"
@@ -59,7 +59,10 @@ const Navbar = () => {
                   router.push(path);
                 }}
               >
-                <span className="group-hover:text-neutral-100 "> {title}</span>
+                <div className="group flex space-x-2">
+                  <Image src={img} alt={title} height={24} width={24} className="-mt-1" />
+                  <span className="group-hover:text-neutral-100 "> {title}</span>
+                </div>
               </Button>
             ))}
           </AnimatedBackground>
@@ -69,7 +72,7 @@ const Navbar = () => {
         <div className="hidden md:flex space-x-2">
           {user ? (
             <Button className="" variant={'ghost'}>
-              Messages
+              <Image src="/images/navbar/message.svg" alt="Message" height={24} width={24} className="-mt-1" />
             </Button>
           ) : null}
 
