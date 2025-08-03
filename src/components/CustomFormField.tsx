@@ -68,6 +68,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
               placeholder={props.placeholder}
               {...field}
               className="text-sm leading-[18px] font-medium focus-visible:ring-0 focus-visible:ring-offset-0 text-[#3d3d3d] border-none"
+              id={props.name}
             />
           </FormControl>
         </div>
@@ -84,6 +85,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
 
           <FormControl>
             <Input
+              id={props.name}
               placeholder={props.placeholder}
               {...field}
               className="text-[14px] leading-[18px] font-medium focus-visible:ring-0 focus-visible:ring-offset-0  border-none  rounded-tl-full rounded-bl-full hover:bg-slate-300"
@@ -97,7 +99,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
         <div className={`flex rounded-md border hover:shadow-xl transition ease-in-out  duration-400`}>
           {props.iconSrc && <Image src={props.iconSrc} height={24} width={24} alt={props.iconAlt || 'icon'} className="ml-2" />}
 
-          {!props.iconSrc && (props.name === 'password' || 'confirmPassword') && (
+          {!props.iconSrc && (props.name === 'password' || props.name === 'confirmPassword') && (
             <div className="flex items-center justify-center ml-2">
               <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#666666">
                 <path d="M80-200v-80h800v80H80Zm46-242-52-30 34-60H40v-60h68l-34-58 52-30 34 58 34-58 52 30-34 58h68v60h-68l34 60-52 30-34-60-34 60Zm320 0-52-30 34-60h-68v-60h68l-34-58 52-30 34 58 34-58 52 30-34 58h68v60h-68l34 60-52 30-34-60-34 60Zm320 0-52-30 34-60h-68v-60h68l-34-58 52-30 34 58 34-58 52 30-34 58h68v60h-68l34 60-52 30-34-60-34 60Z" />
@@ -111,6 +113,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
               {...field}
               type={showPassword ? 'text' : 'password'}
               className="text-[14px] leading-[18px] font-medium focus-visible:ring-0 focus-visible:ring-offset-0 border-0 text-[#3d3d3d] "
+              id={props.name}
             />
           </FormControl>
           <button type="button" className=" px-1" onClick={() => setShowPassword(!showPassword)}>
@@ -127,6 +130,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
       return (
         <FormControl>
           <Textarea
+            id={props.name}
             placeholder={props.placeholder}
             {...field}
             className=" placeholder:text-[#3d3d3d] border-dark-500 focus-visible:ring-0 focus-visible:ring-offset-0 h-[100px] text-white"

@@ -30,7 +30,9 @@ const formSchema = z
 const RegisterForm = () => {
   // creating all the states and variables
   const [loading, setLoading] = useState(false);
-  const { createAccount, login } = useAuthStore();
+  // const { createAccount, login } = useAuthStore();
+  const createAccount = useAuthStore((state) => state.createAccount);
+  const login = useAuthStore((state) => state.login);
 
   //   Creating Form using react-hook-form and setup zod validation
   const form = useForm<z.infer<typeof formSchema>>({
@@ -66,11 +68,12 @@ const RegisterForm = () => {
   };
 
   return (
-    <main className="w-full h-screen flex items-center justify-around  ">
-      <section className="flex flex-col items-center justify-center w-[500px] p-6 ">
+    // This lets the illustration drop below on small screens naturally.
+    <main className="w-full h-screen flex flex-col lg:flex-row items-center justify-center lg:justify-around">
+      <section className="flex flex-col items-center justify-center w-full max-w-md p-6 ">
         <h1 className="font-bold text-3xl mb-10">Create your account</h1>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 flex flex-col w-full">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 flex flex-col w-full">
             <CustomFormField
               fieldType={FormFieldType.INPUT}
               control={form.control}
@@ -117,10 +120,10 @@ const RegisterForm = () => {
         </Form>
 
         <div className="flex flex-col items-center justify-center space-y-2 mt-4 text-slate-500">
-          <h1 className="text-sm">OR</h1>
+          <p className="text-sm">OR</p>
           <p>
             Already have an account{' '}
-            <Link href="/login" className="text-[#6fbcf7] font-bold hover:text-[#36a5f9]">
+            <Link href="/login" className="text-[#6fbcf7] font-bold hover:text-[#36a5f9] underline-offset-2 hover:underline">
               Login
             </Link>
           </p>

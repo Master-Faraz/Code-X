@@ -3,6 +3,7 @@ import { useAuthStore } from '@/store/auth';
 import { useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
 import { Toaster } from '@/components/ui/sonner';
+import AuthSkeleton from '@/components/AuthSkeletin';
 
 const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   // Getting the session
@@ -12,11 +13,16 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
 
   // If there is session then no need to be in register and login page. Hydrated used to avoid flickering
   useEffect(() => {
-    if (hydrated && session) router.push('/');
+    if (hydrated && session) router.replace('/');
   }, [hydrated, session, router]);
 
   // Prevent any UI rendering until hydration is complete
-  if (!hydrated) return null;
+  // if (!hydrated) return null;
+
+  // Rendering Skeleton instead of null to avoid blank page
+  if (!hydrated) {
+    return <AuthSkeleton />;
+  }
 
   // If session exists after hydration, block auth page
   if (session) return null;

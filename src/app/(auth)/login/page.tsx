@@ -20,7 +20,8 @@ const formSchema = z.object({
 
 const LoginPage = () => {
   const [loading, setLoading] = useState(false);
-  const { login } = useAuthStore();
+  // const { login } = useAuthStore();
+  const login = useAuthStore((state) => state.login);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -35,19 +36,19 @@ const LoginPage = () => {
     try {
       const response = await login(data.email, data.password);
       if (response.error) throw response.error;
-
-      // await new Promise((resolve) => setTimeout(resolve, 500)); // Delay before toast
       toast.success('Logged in successfully');
     } catch (error: any) {
-      toast.error(error.message);
+      console.error('Auth error:', error);
+      toast.error(error.message || 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="w-full h-screen flex items-center justify-around  ">
-      <section className="flex flex-col items-center justify-center w-[500px] p-6 ">
+    // <main className="w-full h-screen flex items-center justify-around  ">
+    <main className="w-full h-screen flex flex-col lg:flex-row items-center justify-center lg:justify-around">
+      <section className="flex flex-col items-center justify-center w-full max-w-md p-6 ">
         <h1 className="font-bold text-3xl mb-10">Log in to your account</h1>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full  ">
@@ -72,7 +73,7 @@ const LoginPage = () => {
             />
 
             <div className="flex justify-end">
-              <Link href="/forgot-password" className="text-sm text-[#3d3d3d] hover:text-[#36a5f9] hover:underline">
+              <Link href="/forgot-password" className="text-sm text-[#6fbcf7]  hover:text-[#36a5f9] hover:underline underline-offset-2">
                 Forgot password?
               </Link>
             </div>
@@ -90,10 +91,10 @@ const LoginPage = () => {
         </Form>
 
         <div className="flex flex-col items-center justify-center space-y-2 mt-4 text-slate-500">
-          <h1 className="text-sm">OR</h1>
+          <p className="text-sm">OR</p>
           <p>
             You don't have an account yet? {'  '}
-            <Link href="/register" className="text-[#6fbcf7] font-bold hover:text-[#36a5f9]">
+            <Link href="/register" className="text-[#6fbcf7] font-bold hover:text-[#36a5f9] underline-offset-2 hover:underline">
               Sign up
             </Link>
           </p>

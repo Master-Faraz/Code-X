@@ -27,7 +27,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <div className="flex flex-col bg-gradient-to-br ">
-          <Navbar />
+          {/* <Navbar /> */}
           {children}
         </div>
         <Toaster position="top-right" richColors={true} />
