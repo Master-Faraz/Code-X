@@ -21,7 +21,8 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
 
   // Rendering Skeleton instead of null to avoid blank page
   if (!hydrated) {
-    return <AuthSkeleton />;
+    // return <AuthSkeleton />;
+    return null;
   }
 
   // If session exists after hydration, block auth page

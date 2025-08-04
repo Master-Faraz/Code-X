@@ -20,7 +20,6 @@ const formSchema = z.object({
 
 const LoginPage = () => {
   const [loading, setLoading] = useState(false);
-  // const { login } = useAuthStore();
   const login = useAuthStore((state) => state.login);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -46,14 +45,11 @@ const LoginPage = () => {
   };
 
   return (
-    // <main className="w-full h-screen flex items-center justify-around  ">
-    <main className="w-full h-screen flex flex-col lg:flex-row items-center justify-center lg:justify-around">
+    <main className="w-full h-screen flex flex-col lg:flex-row items-center justify-center lg:justify-around text-card-foreground">
       <section className="flex flex-col items-center justify-center w-full max-w-md p-6 ">
-        <h1 className="font-bold text-3xl mb-10">Log in to your account</h1>
+        <h1 className="font-bold text-3xl mb-10 ">Log in to your account</h1>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full  ">
-            <div></div>
-
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full">
             <CustomFormField
               fieldType={FormFieldType.INPUT}
               control={form.control}
@@ -73,7 +69,10 @@ const LoginPage = () => {
             />
 
             <div className="flex justify-end">
-              <Link href="/forgot-password" className="text-sm text-[#6fbcf7]  hover:text-[#36a5f9] hover:underline underline-offset-2">
+              <Link
+                href="/forgot-password"
+                className="text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-foreground)] hover:underline underline-offset-2 text-sm"
+              >
                 Forgot password?
               </Link>
             </div>
@@ -81,8 +80,8 @@ const LoginPage = () => {
             <Button
               type="submit"
               disabled={loading}
-              className={`w-full hover:shadow-2xl/10 bg-[#263238] hover:bg-neutral-950 text-white transition-all duration-300 hover:cursor-pointer ${
-                loading ? 'opacity-50 cursor-not-allowed' : ''
+              className={`w-full transition-all duration-300 hover:shadow-2xl/10 bg-[color:var(--color-sidebar)] hover:brightness-105 text- ${
+                loading ? 'opacity-50 cursor-not-allowed' : 'hover:cursor-pointer'
               }`}
             >
               {loading ? 'Logging in...' : 'Login'}
@@ -94,7 +93,10 @@ const LoginPage = () => {
           <p className="text-sm">OR</p>
           <p>
             You don't have an account yet? {'  '}
-            <Link href="/register" className="text-[#6fbcf7] font-bold hover:text-[#36a5f9] underline-offset-2 hover:underline">
+            <Link
+              href="/register"
+              className="font-bold text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-foreground)] underline-offset-2 hover:underline"
+            >
               Sign up
             </Link>
           </p>
@@ -102,7 +104,7 @@ const LoginPage = () => {
       </section>
 
       {/* Image section */}
-      <section className="w-[500px] h-[500px]  hidden lg:block">
+      <section className="w-[500px] h-[500px] hidden lg:block">
         <Image src="/images/login.svg" alt="login" height={500} width={500} />
       </section>
     </main>
