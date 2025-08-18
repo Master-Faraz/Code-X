@@ -1,6 +1,6 @@
 // const sdk = require("node-appwrite");
-import env from "@/app/env";
-import { Avatars, Client, Storage, Databases, Users } from "node-appwrite";
+import env from '@/app/env';
+import { Avatars, Client, Storage, Databases, Users } from 'node-appwrite';
 
 const client = new Client()
   .setEndpoint(env.appwrite.endpoint) // Your API Endpoint
