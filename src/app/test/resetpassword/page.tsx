@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { requestPasswordReset, verifyAndResetPassword } from '@/actions/passwordReset.action';
 
-export default function ResetPasswordPage({ userId = '688517950031c887ca1c' }: { userId: string }) {
+export default function ResetPasswordPage() {
   const [email, setEmail] = useState('');
   const [step, setStep] = useState<'request' | 'verify'>('request');
   const [otp, setOtp] = useState('');
@@ -25,7 +25,7 @@ export default function ResetPasswordPage({ userId = '688517950031c887ca1c' }: {
 
   async function handleVerify() {
     setError(null);
-    const res = await verifyAndResetPassword(email, otp, password, userId);
+    const res = await verifyAndResetPassword(email, password);
     if (res.success) setMessage('Password reset successful!');
     else setError(res.error!);
   }

@@ -4,6 +4,7 @@
 import { generateAndStoreOtp, checkAndMarkResend, verifyOtp } from '@/lib/otpCache';
 import { sendOtpEmail } from '@/lib/emailService';
 import { users } from '@/models/server/config';
+import { Query } from 'node-appwrite';
 // import { adminUsers } from '@/lib/serverConfig';
 
 interface RequestResult {
@@ -38,13 +39,25 @@ export async function requestPasswordReset(email: string): Promise<RequestResult
 /**
  * Step 2: Verify the OTP and update password
  */
-export async function verifyAndResetPassword(email: string, otp: string, newPassword: string, userId: string): Promise<VerifyResult> {
+export async function verifyAndResetPassword(email: string, newPassword: string): Promise<VerifyResult> {
   // Verify OTP & enforce lockouts
-  const check = verifyOtp(email, otp);
-  if (!check.ok) return { success: false, error: check.error };
+  // const check = verifyOtp(email, otp);
+  // if (!check.ok) return { success: false, error: check.error };
+
+  //
 
   // Update user password via Admin API -> Server config node-appwrite
   try {
+    // Look up user by email for their userID
+    const userList = await users.list([Query.equal('email', email)]);
+
+    if (userList.users.length === 0) {
+      return { success: false, error: 'User not found' };
+    }
+
+    const userId = userList.users[0].$id;
+
+    // update the password
     await users.updatePassword(userId, newPassword);
     return { success: true };
   } catch (err: any) {

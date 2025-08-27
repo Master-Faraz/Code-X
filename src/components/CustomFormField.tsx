@@ -7,12 +7,14 @@ import { Input } from './ui/input';
 import { Control } from 'react-hook-form';
 import { Textarea } from './ui/textarea';
 import { useState } from 'react';
+import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from './ui/input-otp';
 
 export enum FormFieldType {
   INPUT = 'input',
   TEXTAREA = 'textarea',
   PASSWORD = 'password',
-  SEARCH = 'search'
+  SEARCH = 'search',
+  OTP = 'otp'
 }
 
 interface CustomProps {
@@ -30,6 +32,7 @@ interface CustomProps {
 
 const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
   const [showPassword, setShowPassword] = useState(false);
+
   switch (props.fieldType) {
     case FormFieldType.INPUT:
       return (
@@ -139,6 +142,25 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
         </FormControl>
       );
 
+    case FormFieldType.OTP:
+      return (
+        <FormControl>
+          <InputOTP maxLength={6} {...field} className="w-full">
+            <InputOTPGroup>
+              <InputOTPSlot index={0} />
+              <InputOTPSlot index={1} />
+              <InputOTPSlot index={2} />
+            </InputOTPGroup>
+            <InputOTPSeparator />
+            <InputOTPGroup>
+              <InputOTPSlot index={3} />
+              <InputOTPSlot index={4} />
+              <InputOTPSlot index={5} />
+            </InputOTPGroup>
+          </InputOTP>
+        </FormControl>
+      );
+
     default:
       return null;
   }
@@ -153,7 +175,7 @@ const CustomFormField = (props: CustomProps) => {
       name={name}
       render={({ field }) => (
         <FormItem className={`${className}`}>
-          {label && <FormLabel className="text-[16px] leading-[18px] font-bold text-[#3d3d3d] ">{label}</FormLabel>}
+          {label && <FormLabel className=" text-card-foreground/85 font-bold ">{label}</FormLabel>}
           <RenderInput field={field} props={props} />
 
           <FormMessage className="text-red-400" />

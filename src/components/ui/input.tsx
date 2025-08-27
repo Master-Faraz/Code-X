@@ -9,7 +9,7 @@ function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
       data-slot="input"
       className={cn(
         // Keep layout-related classes
-        'flex h-9 w-full min-w-0 rounded-md bg-transparent px-3 py-4 text-base md:text-sm',
+        'flex h-10 w-full min-w-0 rounded-md bg-transparent px-3 py-4 text-base md:text-sm',
         // Remove default border + shadow
         'border-none shadow-none',
         // Keep accessibility & focus handling
