@@ -26,7 +26,7 @@ const Navbar = () => {
   }, []);
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 bg-transparent text-primary">
+    <nav className="fixed top-0 left-0 w-full z-50 text-primary bg-transparent">
       <div
         className={`flex items-center justify-between mx-auto px-6 h-16 transition-all duration-500 ease-in-out 
   backdrop-blur-md shadow-lg ring-1 ring-white/10 border border-white/30 

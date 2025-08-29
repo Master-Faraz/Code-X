@@ -9,11 +9,11 @@ import { Query } from 'node-appwrite';
 
 interface RequestResult {
   success: boolean;
-  error?: string;
+  message?: string;
 }
 interface VerifyResult {
   success: boolean;
-  error?: string;
+  message?: string;
 }
 
 /**
@@ -22,7 +22,7 @@ interface VerifyResult {
 export async function requestPasswordReset(email: string): Promise<RequestResult> {
   // Throttle resends
   const resendCheck = checkAndMarkResend(email);
-  if (!resendCheck.ok) return { success: false, error: resendCheck.error };
+  if (!resendCheck.ok) return { success: false, message: resendCheck.error };
 
   // Generate & cache OTP
   const otp = generateAndStoreOtp(email);
@@ -30,7 +30,7 @@ export async function requestPasswordReset(email: string): Promise<RequestResult
   // Send via Resend
   const emailRes = await sendOtpEmail({ to: email, otp, sub: 'Your Reset OTP', username: email });
   if (!emailRes.success) {
-    return { success: false, error: emailRes.error };
+    return { success: false, message: emailRes.error };
   }
 
   return { success: true };
@@ -42,7 +42,7 @@ export async function requestPasswordReset(email: string): Promise<RequestResult
 export async function verifyAndResetPassword(email: string, otp: string, newPassword: string): Promise<VerifyResult> {
   // Verify OTP & enforce lockouts
   const check = verifyOtp(email, otp);
-  if (!check.ok) return { success: false, error: check.error };
+  if (!check.ok) return { success: false, message: check.error };
 
   //
 
@@ -52,7 +52,7 @@ export async function verifyAndResetPassword(email: string, otp: string, newPass
     const userList = await users.list([Query.equal('email', email)]);
 
     if (userList.users.length === 0) {
-      return { success: false, error: 'User not found' };
+      return { success: false, message: 'User not found' };
     }
 
     const userId = userList.users[0].$id;
@@ -61,19 +61,19 @@ export async function verifyAndResetPassword(email: string, otp: string, newPass
     await users.updatePassword(userId, newPassword);
     return { success: true };
   } catch (err: any) {
-    return { success: false, error: err.message || 'Failed to update password' };
+    return { success: false, message: err.message || 'Failed to update password' };
   }
 }
 
 // Add a separate OTP verification function that doesn't delete the OTP
-export async function verifyOtpOnly(email: string, otp: string): Promise<{ success: boolean; error?: string }> {
+export async function verifyOtpOnly(email: string, otp: string): Promise<{ success: boolean; message?: string }> {
   const now = Date.now();
   const attempt = attemptsCache.get(email) ?? { count: 0, blockedUntil: 0 };
 
   // Check lockout
   if (attempt.blockedUntil > now) {
     const wait = Math.ceil((attempt.blockedUntil - now) / 1000);
-    return { success: false, error: `Too many attempts. Try again in ${wait}s.` };
+    return { success: false, message: `Too many attempts. Try again in ${wait}s.` };
   }
 
   const rec = otpCache.get(email);
@@ -84,7 +84,7 @@ export async function verifyOtpOnly(email: string, otp: string): Promise<{ succe
       attempt.count = 0;
     }
     attemptsCache.set(email, attempt);
-    return { success: false, error: 'Invalid or expired OTP.' };
+    return { success: false, message: 'Invalid or expired OTP.' };
   }
 
   // DON'T delete the OTP here - just verify it exists and is valid
