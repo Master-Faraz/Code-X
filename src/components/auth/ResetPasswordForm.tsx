@@ -8,10 +8,9 @@ import CustomFormField, { FormFieldType } from '../CustomFormField';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import { useState } from 'react';
-import { requestPasswordReset, verifyAndResetPassword } from '@/actions/passwordReset.action';
+import { requestPasswordReset, verifyAndResetPassword, verifyOtpOnly } from '@/actions/passwordReset.action';
 import { toast } from 'sonner';
-import { verifyOtp } from '@/lib/otpCache';
-import { error } from 'console';
+
 
 
 const formSchema = z.object({
@@ -28,7 +27,9 @@ const formSchema = z.object({
 });
 
 const ResetPasswordForm = () => {
+  // states 
   const [step, setStep] = useState(1);
+  const [loading, setIsLoading] = useState(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -41,9 +42,12 @@ const ResetPasswordForm = () => {
     }
   });
 
-  const handleEmailSubmit = async () => {
-    if (step === 1) {
 
+  // Function for handling email and OTP
+  const handleEmailSubmit = async () => {
+    setIsLoading(true)
+    // Send OTP
+    if (step === 1) {
       try {
         const valid = await form.trigger("email");
         if (!valid) return;
@@ -52,9 +56,20 @@ const ResetPasswordForm = () => {
           toast.success("OTP send successfully")
           setStep(2);
         } else throw res.error;
+
+
+        // setTimeout(() => {
+        //   setIsLoading(false)
+        //   setStep(2);
+
+        // }, 3000);
+
       } catch (error) {
         toast.error("There is some problem while sending the OTP")
         console.log("OTP Error ::" + error)
+      }
+      finally {
+        setIsLoading(false)
       }
 
     }
@@ -65,24 +80,38 @@ const ResetPasswordForm = () => {
         const valid = await form.trigger("otp");
         if (!valid) return;
 
-        // verifying otp
-        const check = verifyOtp(form.getValues("email"), form.getValues("otp"));
-        if (!check.ok) throw { success: false, error: check.error };
+        console.log("otp validation")
+        console.log("Email :: " + form.getValues("email") + " otp :: " + form.getValues("otp"))
+
+        // // verifying otp
+        const check = await verifyOtpOnly(form.getValues("email"), form.getValues("otp"));
+        if (check.error) throw { success: false, error: check.error };
+
+
 
         // if otp is verified then 
         form.setValue("isOTPVerified", true)
         toast.success("OTP Verified successfully")
 
         setStep(3);
+        // setTimeout(() => {
+        //   setIsLoading(false)
+        //   setStep(3);
+
+        // }, 3000);
       } catch (error: any) {
         toast.error("OTP Verification Failed")
-        console.log(error?.message)
-
+        console.log(error)
+      }
+      finally {
+        setIsLoading(false)
       }
     }
   };
 
+  // Handling form submit
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true)
     // Form Validation
     const passwordValid = await form.trigger("password");
     const confirmPasswordValid = await form.trigger("confirmPassword");
@@ -91,7 +120,7 @@ const ResetPasswordForm = () => {
     try {
       // Checking if otp is verified or not 
       if (values.isOTPVerified === false) throw { success: false, message: "OTP is not verified" }
-      const res = await verifyAndResetPassword(values.email, values.password);
+      const res = await verifyAndResetPassword(values.email, values.otp, values.password);
       if (res.success) toast.success('Password reset successful!');
       else throw res.error;
     } catch (error) {
@@ -100,13 +129,19 @@ const ResetPasswordForm = () => {
       console.log("Password reset Error :: " + error)
 
     }
+    finally {
+      setIsLoading(false)
+    }
 
-    console.log("Final submitted values", values);
+    // setTimeout(() => {
+    //   setIsLoading(false)
+    // }, 3000);
+
   }
 
   return (
-    <div className="w-full flex flex-col ">
-      <Card>
+    <div className="w-full flex flex-col text-card-foreground">
+      <Card className='bg-card min-w-[320px] '>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <CardHeader className='flex flex-col items-center justify-center'>
@@ -114,7 +149,9 @@ const ResetPasswordForm = () => {
                 <span className='text-lg'>Forgot Password?</span>
               </CardTitle>
               <CardDescription className='text-muted-foreground/70'>
-                No worries, we will send you reset instructions
+                {step === 1 && <span>No worries, we will send you reset instructions to your email</span>}
+                {step === 2 && <span>Please enter the OTP send to {form.getValues("email")}</span>}
+                {step === 3 && <span>Please enter the new password</span>}
               </CardDescription>
             </CardHeader>
 
@@ -127,6 +164,7 @@ const ResetPasswordForm = () => {
                   label="Email"
                   placeholder="Please enter your email"
                   iconAlt="email"
+                  className=''
                 />
               )}
 
@@ -162,15 +200,15 @@ const ResetPasswordForm = () => {
 
             <CardFooter>
               {(step === 1 || step === 2) && (
-                <Button onClick={handleEmailSubmit} type="button" className="w-full text-white">
-                  {step === 1 && "Send OTP"}
-                  {step === 2 && "Verify OTP"}
+                <Button onClick={handleEmailSubmit} variant={'secondary'} className='w-full focus-visible:ring-ring transition-all duration-200 ease-in-out cursor-pointer' disabled={loading}>
+                  {(step === 1) && (!loading ? "Send OTP" : "Sending OTP ...")}
+                  {((step === 2)) && (!loading ? "Verify OTP" : "Verifying OTP ...")}
                 </Button>
               )}
 
               {step === 3 && (
-                <Button type='submit' className="w-full text-white">
-                  Reset Password
+                <Button type='submit' className="w-full focus-visible:ring-ring transition-all duration-200 ease-in-out cursor-pointer" disabled={loading}>
+                  {!loading ? "Reset Password" : "Resetting Password ..."}
                 </Button>
               )}
             </CardFooter>

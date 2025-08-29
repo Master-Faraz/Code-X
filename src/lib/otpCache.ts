@@ -4,9 +4,9 @@ type OtpRecord = { otp: string; expires: number };
 type RateRecord = { count: number; blockedUntil: number };
 
 // In-memory stores keyed by email
-const otpCache = new Map<string, OtpRecord>();
-const attemptsCache = new Map<string, RateRecord>();
-const resendCache = new Map<string, RateRecord>();
+export const otpCache = new Map<string, OtpRecord>();
+export const attemptsCache = new Map<string, RateRecord>();
+export const resendCache = new Map<string, RateRecord>();
 
 /**
  * Generate and store a new 6-digit OTP

@@ -25,7 +25,7 @@ export default function ResetPasswordPage() {
 
   async function handleVerify() {
     setError(null);
-    const res = await verifyAndResetPassword(email, password);
+    const res = await verifyAndResetPassword(email, otp, password,);
     if (res.success) setMessage('Password reset successful!');
     else setError(res.error!);
   }
