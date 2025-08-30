@@ -12,6 +12,7 @@ import CustomFormField, { FormFieldType } from '@/components/CustomFormField';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/card';
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
     email: z.string().email('Please enter a valid email.'),
@@ -22,6 +23,7 @@ const formSchema = z.object({
 const LoginForm = () => {
     const [loading, setLoading] = useState(false);
     const login = useAuthStore((state) => state.login);
+    const router = useRouter()
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -37,6 +39,7 @@ const LoginForm = () => {
             const response = await login(data.email, data.password);
             if (response.error) throw response.error;
             toast.success('Logged in successfully');
+            router.push("/")
         } catch (error: any) {
             toast.error("Something went wrong")
             toast.error(error.message || 'Something went wrong. Please try again.');
