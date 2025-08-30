@@ -70,7 +70,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
             <Input
               placeholder={props.placeholder}
               {...field}
-              className="text-sm leading-[18px] font-medium focus-visible:ring-0 focus-visible:ring-offset-0 text-[#3d3d3d] border-none"
+              className="text-sm leading-[18px]  font-medium focus-visible:ring-0 focus-visible:ring-offset-0  border-none text-card-foreground placeholder:text-muted-foreground"
               id={props.name}
             />
           </FormControl>
@@ -99,7 +99,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
 
     case FormFieldType.PASSWORD:
       return (
-        <div className={`flex rounded-md border hover:shadow-xl transition ease-in-out  duration-400`}>
+        <div className={`flex rounded-md border hover:shadow-xl transition ease-in-out  duration-400 `}>
           {props.iconSrc && <Image src={props.iconSrc} height={24} width={24} alt={props.iconAlt || 'icon'} className="ml-2" />}
 
           {!props.iconSrc && (props.name === 'password' || props.name === 'confirmPassword') && (
@@ -115,7 +115,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
               placeholder={props.placeholder}
               {...field}
               type={showPassword ? 'text' : 'password'}
-              className="text-[14px] leading-[18px] font-medium focus-visible:ring-0 focus-visible:ring-offset-0 border-0 text-[#3d3d3d] "
+              className="text-[14px] leading-[18px] font-medium focus-visible:ring-0 focus-visible:ring-offset-0 border-0 text-card-foreground placeholder:text-muted-foreground "
               id={props.name}
             />
           </FormControl>
@@ -136,7 +136,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
             id={props.name}
             placeholder={props.placeholder}
             {...field}
-            className=" placeholder:text-[#3d3d3d] border-dark-500 focus-visible:ring-0 focus-visible:ring-offset-0 h-[100px] text-white"
+            className=" border-dark-500 focus-visible:ring-0 focus-visible:ring-offset-0 h-[100px] text-card-foreground placeholder:text-muted-foreground"
             disabled={props.disabled}
           />
         </FormControl>
@@ -144,7 +144,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
 
     case FormFieldType.OTP:
       return (
-        <FormControl>
+        <FormControl className='text-card-foreground '>
           <InputOTP maxLength={6} {...field} className="w-full">
             <InputOTPGroup>
               <InputOTPSlot index={0} />
@@ -175,10 +175,10 @@ const CustomFormField = (props: CustomProps) => {
       name={name}
       render={({ field }) => (
         <FormItem className={`${className}`}>
-          {label && <FormLabel className=" text-card-foreground/85 font-bold ">{label}</FormLabel>}
+          {label && <FormLabel className=" text-card-foreground  ">{label}</FormLabel>}
           <RenderInput field={field} props={props} />
 
-          <FormMessage className="text-red-400" />
+          <FormMessage className="text-destructive" />
         </FormItem>
       )}
     />

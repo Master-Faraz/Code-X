@@ -3,7 +3,7 @@ import { useAuthStore } from '@/store/auth';
 import { useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
 import { Toaster } from '@/components/ui/sonner';
-import AuthSkeleton from '@/components/AuthSkeletin';
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   // Getting the session
@@ -21,7 +21,6 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
 
   // Rendering Skeleton instead of null to avoid blank page
   if (!hydrated) {
-    // return <AuthSkeleton />;
     return null;
   }
 
@@ -30,8 +29,12 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
 
   //   If no session then load the children
   return (
-    <div className=" w-full h-screen flex items-center justify-center bg-gradient-to-br from-[#fff1eb] to-[#ace0f9]">
-      {children}
+    <div className=" w-full h-screen flex items-center justify-center ">
+
+      <div className='w-full h-full dark:bg-background dark:bg-none bg-gradient-to-br  from-[#fff1eb] to-[#ace0f9] '>
+
+        {children}
+      </div>
       <Toaster position="top-right" richColors={true} />
     </div>
   );

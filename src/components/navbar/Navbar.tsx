@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { CircleUserRound, Menu, UserPlus, X } from 'lucide-react';
+import { CircleUserRound, Menu, MessageCircleMore, UserPlus, X } from 'lucide-react';
 import { Button } from '../ui/button';
 import { NAV_LINKS } from '@/constants/navbarConstants';
 import { AnimatedBackground } from '../../../components/motion-primitives/animated-background';
@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
 import LogoutBtn from '../LogoutBtn';
 import dynamic from 'next/dynamic';
+import ThemeToggler from '../ThemeToggler';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -71,12 +72,13 @@ const Navbar = () => {
           {user ? (
             <>
               <Button variant="ghost">
-                <Image src="/images/navbar/message.svg" alt="Message" width={24} height={24} className="-mt-1" />
+                <MessageCircleMore size={24} />
               </Button>
               <LogoutBtn />
             </>
           ) : (
-            <>
+            <div className='flex space-x-2'>
+              <ThemeToggler />
               <Button variant="ghost" className="rounded-full hover:scale-110 transition-all duration-200 cursor-pointer" onClick={() => router.push('/login')}>
                 <div className="flex items-center space-x-1 ">
                   <CircleUserRound size={24} />
@@ -89,7 +91,7 @@ const Navbar = () => {
                   <span>Sign up</span>
                 </div>
               </Button>
-            </>
+            </div>
           )}
         </div>
 
@@ -145,7 +147,7 @@ const Navbar = () => {
                 <li>
                   <Button onClick={() => setIsMenuOpen(false)} variant="ghost" className="w-full justify-start h-12 px-4 text-left hover:bg-muted">
                     <div className="flex items-center space-x-3">
-                      <Image src="/images/navbar/message.svg" alt="Message" height={20} width={20} />
+                      <MessageCircleMore size={24} />
                       <span className="font-medium">Messages</span>
                     </div>
                   </Button>

@@ -1,6 +1,7 @@
 'use client';
 
 import LogoutBtn from '@/components/LogoutBtn';
+import ThemeToggler from '@/components/ThemeToggler';
 
 import { useAuthStore } from '@/store/auth';
 
@@ -17,6 +18,9 @@ export default function Home() {
       <div className="h-[400px] w-[400px] bg-green-300"></div>
       <div className="h-[400px] w-[400px] bg-cyan-300"></div>
       <div className="h-[400px] w-[400px] bg-red-300"></div>
+
+      <ThemeToggler />
+
       <div className="h-[400px] w-[400px] bg-green-300"></div>
       <div className="h-[400px] w-[400px] bg-cyan-300"></div>
       <div className="h-[400px] w-[400px] bg-red-300"></div>
