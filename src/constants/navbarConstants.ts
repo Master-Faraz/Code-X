@@ -1,23 +1,19 @@
+import { IndianRupee, Bed, UserPlus } from 'lucide-react';
 export const NAV_LINKS = [
   {
     title: 'Find Rooms',
     path: '/',
-    img: '/images/navbar/room.svg'
+    icons: Bed
   },
 
   {
-    title: 'List Room',
+    title: 'Share Room',
     path: '/',
-    img: '/images/navbar/shareRoom.svg'
-  },
-  {
-    title: 'Ask AI',
-    path: '/',
-    img: '/images/navbar/ai.svg'
+    icons: UserPlus
   },
   {
     title: 'Plans',
     path: '/',
-    img: '/images/navbar/rupee.svg'
+    icons: IndianRupee
   }
 ];
