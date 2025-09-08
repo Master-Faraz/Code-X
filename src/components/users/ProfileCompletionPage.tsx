@@ -13,6 +13,7 @@ import { Mail, Shield, User, UserCheck, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
 import { SelectItem } from '../ui/select'
 import StepIndicator from './StepIndicator'
+import { requestUserVerificationEmail, verifyUserEmailWithOtp } from '@/actions/userVerification.action'
 
 
 // Combined schema - make some fields optional for step-by-step validation
@@ -66,33 +67,43 @@ const ProfileCompletionPage = () => {
     // Handle email verification and OTP
     const handleEmailVerification = async () => {
         setLoading(true)
+        const email = form.getValues('email')
 
         try {
             if (!otpSent) {
                 // Send OTP - no validation needed for email since it's pre-filled
-                const email = form.getValues('email')
                 if (!email) {
                     toast.error('Email is required')
                     return
                 }
 
-                // Your send OTP API call here
-                // const res = await sendOTP(email)
+                // Sending OTP email
+                // const res = await requestUserVerificationEmail(email);
+                // if (!res.success) {
+                //     toast.error(res.error);
+                //     console.error(res.error)
+                // }
+
                 await new Promise(resolve => setTimeout(resolve, 1500)) // Simulate API call
 
                 setOtpSent(true)
                 toast.success('OTP sent successfully')
             } else {
-                // Verify OTP
+                // Getting and validating OTP
                 const otp = form.getValues('otp')
                 if (!otp || otp.length !== 6) {
                     toast.error('Please enter a valid 6-digit OTP')
                     return
                 }
 
-                // Your verify OTP API call here
-                // const res = await verifyOTP(form.getValues('email'), otp)
-                await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
+                // Verifying OTP
+                // const res = await verifyUserEmailWithOtp(email, otp);
+                // if (!res.success) {
+                //     toast.error(res.error);
+                //     console.error(res.error)
+                // }
+
+                await new Promise(resolve => setTimeout(resolve, 1500)) // Simulate API call
 
                 form.setValue('isEmailVerified', true)
                 toast.success('Email verified successfully')
@@ -277,6 +288,7 @@ const ProfileCompletionPage = () => {
                                             className=""
                                         />
 
+                                        {/* Resend email */}
                                         <div className="text-center text-muted-foreground ">
                                             <span>Didn't receive the code?
                                                 <Button

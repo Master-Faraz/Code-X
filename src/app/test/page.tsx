@@ -1,7 +1,7 @@
 'use client';
 // import resetPassword from '@/actions/passwordReset.action';
 import SendTestEmail from '@/actions/sendTestEmail.action';
-import UserVerificationActionTest from '@/actions/testverification';
+import UserVerificationActionTest from '@/actions/userVerification.action';
 // import SendTestEmail from '@/action/sendOTPEmail';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
