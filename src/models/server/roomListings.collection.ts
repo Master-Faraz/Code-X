@@ -27,17 +27,15 @@ export default async function createRoomListingCollection() {
     databases.createBooleanAttribute(db, listingCollection, 'visibility', false, true),
     databases.createDatetimeAttribute(db, listingCollection, 'created_at', true),
     databases.createDatetimeAttribute(db, listingCollection, 'updated_at', false),
+    databases.createDatetimeAttribute(db, listingCollection, 'auto_deleted_at', true),
 
     // Rules & Terms
-    databases.createStringAttribute(db, listingCollection, 'rules', 2000, false),
-    databases.createStringAttribute(db, listingCollection, 'additional_terms', 2000, false),
+    databases.createStringAttribute(db, listingCollection, 'terms', 2000, false),
 
     // Contact & Verification
-    databases.createEnumAttribute(db, listingCollection, 'listed_by', ['Owner', 'Agent', 'Tenant'], true),
     databases.createStringAttribute(db, listingCollection, 'contact_name', 100, true),
     databases.createStringAttribute(db, listingCollection, 'contact_phone', 20, true),
     databases.createStringAttribute(db, listingCollection, 'contact_email', 100, true),
-    databases.createBooleanAttribute(db, listingCollection, 'verified_listing', false),
 
     // Availability
     databases.createBooleanAttribute(db, listingCollection, 'available_for_visits', false),
@@ -64,7 +62,7 @@ export default async function createRoomListingCollection() {
     databases.createEnumAttribute(db, listingCollection, 'furnishing', ['Furnished', 'Semi-Furnished', 'Unfurnished'], false),
     databases.createStringAttribute(db, listingCollection, 'room_size', 30, false),
     databases.createEnumAttribute(db, listingCollection, 'bathroom_type', ['Private', 'Shared', 'Attached'], false),
-    databases.createIntegerAttribute(db, listingCollection, 'balcony', false),
+    databases.createIntegerAttribute(db, listingCollection, 'has_balcony', false),
     databases.createEnumAttribute(db, listingCollection, 'kitchen_access', ['Yes', 'No', 'Shared'], false),
 
     // Amenities
@@ -79,7 +77,6 @@ export default async function createRoomListingCollection() {
     databases.createBooleanAttribute(db, listingCollection, 'elevator', false, false),
     databases.createBooleanAttribute(db, listingCollection, 'housekeeping', false, false),
     databases.createBooleanAttribute(db, listingCollection, 'wardrobe', false, false),
-    // databases.createBooleanAttribute(db, listingCollection, 'study_table', false, false),
     databases.createBooleanAttribute(db, listingCollection, 'pets_allowed', false, false),
     databases.createBooleanAttribute(db, listingCollection, 'smoking_allowed_inside', false, false),
     databases.createBooleanAttribute(db, listingCollection, 'party_friendly', false, false),
@@ -90,7 +87,7 @@ export default async function createRoomListingCollection() {
       db,
       listingCollection,
       'tenant_religion_preference',
-      ['Muslim', 'Hindu', 'Christian', 'Sikh', 'Buddhists', 'Jains', 'Others'],
+      ['Muslim', 'Hindu', 'Christian', 'Sikh', 'Buddhists', 'Jains', 'Others', 'Any'],
       false
     ),
 
@@ -119,13 +116,13 @@ export default async function createRoomListingCollection() {
   await Promise.all([
     databases.createIndex(db, listingCollection, 'idx_id', IndexType.Unique, ['id'], ['asc']),
     databases.createIndex(db, listingCollection, 'idx_city', IndexType.Key, ['city']),
+    databases.createIndex(db, listingCollection, 'idx_state', IndexType.Key, ['state']),
     databases.createIndex(db, listingCollection, 'idx_visibility', IndexType.Key, ['visibility']),
     databases.createIndex(db, listingCollection, 'idx_created_at', IndexType.Key, ['created_at'], ['asc']),
+
     databases.createIndex(db, listingCollection, 'idx_room_type', IndexType.Key, ['room_type']),
     databases.createIndex(db, listingCollection, 'idx_city_rent', IndexType.Key, ['city'], ['asc']),
-    databases.createIndex(db, listingCollection, 'idx_state_type', IndexType.Key, ['state', 'room_type']),
     databases.createIndex(db, listingCollection, 'idx_rent_range', IndexType.Key, ['monthly_rent'], ['asc']),
-    databases.createIndex(db, listingCollection, 'idx_visibility_verified', IndexType.Key, ['visibility', 'verified_listing']),
     databases.createIndex(db, listingCollection, 'idx_gender_preference', IndexType.Key, ['preferred_gender']),
 
     // Parking
@@ -158,7 +155,7 @@ export default async function createRoomListingCollection() {
     ]),
 
     // Availability & Visibility
-    databases.createIndex(db, listingCollection, 'idx_availability_visibility', IndexType.Key, ['available_for_visits', 'visibility']),
+    databases.createIndex(db, listingCollection, 'idx_availability', IndexType.Key, ['available_for_visits']),
 
     // Lifestyle filters
     databases.createIndex(db, listingCollection, 'idx_lifestyle_filters', IndexType.Key, [
@@ -166,7 +163,10 @@ export default async function createRoomListingCollection() {
       'smoking_allowed_inside',
       'party_friendly',
       'guest_allowed'
-    ])
+    ]),
+
+    // Optional utility: find expiring listings
+    databases.createIndex(db, listingCollection, 'idx_auto_delete_at', IndexType.Key, ['auto_deleted_at'], ['asc'])
   ]);
 
   console.log('Attributes and indexes added successfully');
