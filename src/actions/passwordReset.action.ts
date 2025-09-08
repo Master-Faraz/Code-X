@@ -2,7 +2,7 @@
 'use server';
 
 import { generateAndStoreOtp, checkAndMarkResend, verifyOtp, attemptsCache, otpCache } from '@/lib/otpCache';
-import { sendOtpEmail } from '@/lib/emailService';
+import { sendForgotPasswordEmail } from '@/lib/emailService';
 import { users } from '@/models/server/config';
 import { Query } from 'node-appwrite';
 // import { adminUsers } from '@/lib/serverConfig';
@@ -28,7 +28,7 @@ export async function requestPasswordReset(email: string): Promise<RequestResult
   const otp = generateAndStoreOtp(email);
 
   // Send via Resend
-  const emailRes = await sendOtpEmail({ to: email, otp, sub: 'Your Reset OTP', username: email });
+  const emailRes = await sendForgotPasswordEmail({ to: email, otp, sub: 'Your Reset OTP', username: email });
   if (!emailRes.success) {
     return { success: false, message: emailRes.error };
   }
