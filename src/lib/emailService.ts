@@ -4,8 +4,9 @@
 import PasswordResetEmail from '@/components/template/PasswordResetEmail';
 import UserVerificationEmail from '@/components/template/UserVerificationEmail';
 import { Resend } from 'resend';
+import env from '@/app/env';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(env.resend.apiKey);
 
 export interface EmailPayload {
   to: string;
