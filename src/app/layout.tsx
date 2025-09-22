@@ -34,7 +34,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <div className="flex flex-col bg-background">
-            <Navbar />
+            {/* <Navbar /> */}
             {children}
           </div>
           <Toaster position="top-right" richColors={true} />

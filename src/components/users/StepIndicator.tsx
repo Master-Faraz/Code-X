@@ -3,7 +3,7 @@
 import React from 'react'
 
 const StepIndicator = ({ currentStep }: { currentStep: number }) => (
-    <div className="flex items-center justify-center mb-8">
+    <div className="flex items-center justify-center mb-2.5 ">
         {/* Step 1 */}
         <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ${currentStep >= 1 ? 'bg-primary text-white' : 'bg-gray-200 text-gray-500'
             }`}>

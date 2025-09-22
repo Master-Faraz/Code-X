@@ -347,16 +347,16 @@ const ProfileCompletionPage = () => {
     }
 
     return (
-        <div className='w-full flex items-center justify-center p-4'>
-            <div className="w-full max-w-md">
+        <div className='w-full flex items-center justify-center p-4  max-h-[calc(100vh-4rem)]'>
+            <div className="w-full max-w-md h-full">
                 {/* Progress Indicator */}
                 <StepIndicator currentStep={step} />
                 {/* Main Card */}
                 <Card className="bg-card/95 backdrop-blur-sm shadow-2xl border-0 overflow-hidden">
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             {/* Header */}
-                            <CardHeader className="text-center space-y-6 pb-8">
+                            <CardHeader className="text-center space-y-6 pb-2 ">
                                 <div className="mx-auto w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center">
                                     {IconComponent && <IconComponent className="w-10 h-10 text-primary" />}
                                 </div>
@@ -371,7 +371,7 @@ const ProfileCompletionPage = () => {
                             </CardHeader>
 
                             {/* Content */}
-                            <CardContent className="px-6 pb-6 space-y-4">
+                            <CardContent className="px-6 pb-2 space-y-4 ">
                                 {step === 1 && !otpSent && (
                                     <section className="text-center space-y-4">
                                         <div className="flex items-center justify-center gap-3 p-4 bg-muted/50 rounded-xl border">
@@ -418,9 +418,9 @@ const ProfileCompletionPage = () => {
                                         {/* Profile Picture Upload Section */}
                                         <div className="flex flex-col items-center space-y-4">
                                             <div className="text-center">
-                                                <label className="text-sm font-medium text-foreground mb-2 block">
+                                                {/* <label className="text-sm font-medium text-foreground mb-2 block">
                                                     Profile Picture
-                                                </label>
+                                                </label> */}
                                                 <ProfilePictureAvatar />
                                             </div>
 
@@ -442,7 +442,7 @@ const ProfileCompletionPage = () => {
                                                     <Upload className="w-4 h-4" />
                                                     {profilePicFile ? 'Change Picture' : 'Upload Picture'}
                                                 </Button>
-                                                <p className="text-xs text-muted-foreground text-center">
+                                                <p className="text-xs text-muted-foreground/50 text-center">
                                                     JPG, PNG or GIF. Max size 5MB.
                                                 </p>
                                             </div>
@@ -474,6 +474,17 @@ const ProfileCompletionPage = () => {
 
                                 {step === 3 && (
                                     <div className="space-y-6">
+                                        {/* Phone Number - Full width */}
+                                        <CustomFormField
+                                            fieldType={FormFieldType.INPUT}
+                                            control={form.control}
+                                            name="phone"
+                                            label="Phone Number"
+                                            placeholder="Enter phone number"
+                                            iconAlt="phone"
+                                            className="w-full"
+                                        />
+
                                         {/* Date of Birth - Full width */}
                                         <CustomFormField
                                             fieldType={FormFieldType.DATE_Picker}
@@ -483,6 +494,8 @@ const ProfileCompletionPage = () => {
                                             placeholder="Pick a date"
                                             className="w-full"
                                         />
+
+
 
                                         {/* Gender - Full width */}
                                         <CustomFormField
@@ -498,22 +511,13 @@ const ProfileCompletionPage = () => {
                                             <SelectItem value="Others">Others</SelectItem>
                                         </CustomFormField>
 
-                                        {/* Phone Number - Full width */}
-                                        <CustomFormField
-                                            fieldType={FormFieldType.INPUT}
-                                            control={form.control}
-                                            name="phone"
-                                            label="Phone Number"
-                                            placeholder="Enter phone number"
-                                            iconAlt="phone"
-                                            className="w-full"
-                                        />
+
                                     </div>
                                 )}
                             </CardContent>
 
                             {/* Actions */}
-                            <CardFooter className="flex flex-col space-y-4 pt-6">
+                            <CardFooter className="flex flex-col space-y-4 pt-6 ">
                                 {step === 1 && (
                                     <Button
                                         type="button"
@@ -581,13 +585,6 @@ const ProfileCompletionPage = () => {
                         </form>
                     </Form>
                 </Card>
-
-                {/* Help Text */}
-                <div className="text-center mt-6">
-                    <p className="text-sm text-muted-foreground">
-                        Need help? <Button variant="link" className="p-0 h-auto text-sm font-medium">Contact Support</Button>
-                    </p>
-                </div>
             </div>
         </div>
     )
