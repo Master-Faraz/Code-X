@@ -12,7 +12,7 @@ const LoginPage = () => {
         </section>
         {/* Image section */}
         <section className="w-[500px] h-[500px] hidden lg:block">
-          <Image src="/images/login.svg" alt="login" height={500} width={500} />
+          <Image src="/images/login.svg" alt="login" height={500} width={500} priority />
         </section>
       </div>
     </main>

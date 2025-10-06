@@ -177,13 +177,13 @@ const Navbar = () => {
           {!user ? (
             <div className="flex-shrink-0 p-4 border-t border-border bg-muted/50">
               <div className="space-y-3">
-                <Button onClick={() => { setIsMenuOpen(false); router.push('/login'); }} variant="outline" className="w-full justify-center h-11">
+                <Button onClick={() => { setIsMenuOpen(false); router.push('/auth/login'); }} variant="outline" className="w-full justify-center h-11">
                   <div className="flex items-center space-x-2">
                     <CircleUserRound size={18} />
                     <span>Sign In</span>
                   </div>
                 </Button>
-                <Button onClick={() => { setIsMenuOpen(false); router.push('/register'); }} className="w-full justify-center h-11">
+                <Button onClick={() => { setIsMenuOpen(false); router.push('/auth/register'); }} className="w-full justify-center h-11">
                   <div className="flex items-center space-x-2">
                     <UserPlus size={18} />
                     <span>Sign Up</span>

@@ -1,11 +1,8 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { persist } from 'zustand/middleware';
-
 import { AppwriteException, ID, Models } from 'appwrite';
 import { account } from '@/models/client/config';
-
-// Step 1 : Interface Defination
 
 export interface UserPrefs {
   id?: string;
@@ -13,13 +10,14 @@ export interface UserPrefs {
   totalListings?: number;
   theme?: 'light' | 'dark';
 }
+
 interface IAuthStore {
   session: Models.Session | null;
   jwt: string | null;
   user: Models.User<any> | null;
   hydrated: boolean;
 
-  //   Methods
+  // Methods
   setHydrated(): void;
   verifySession(): Promise<void>;
   login(email: string, password: string): Promise<{ success: boolean; error?: AppwriteException | null }>;
@@ -28,17 +26,17 @@ interface IAuthStore {
   updateUser(prefs: Partial<UserPrefs>): null;
 }
 
-//  Create Store hook
+// Platform detection helper
+const isServer = typeof window === 'undefined';
+const isMobile = !isServer && /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+
 export const useAuthStore = create<IAuthStore>()(
   persist(
-    immer((set) => ({
-      // States defination
+    immer((set, get) => ({
       session: null,
       hydrated: false,
       jwt: null,
       user: null,
-
-      // Methods defination
 
       setHydrated() {
         set({ hydrated: true });
@@ -46,20 +44,20 @@ export const useAuthStore = create<IAuthStore>()(
 
       async verifySession() {
         try {
-          const session = await account.getSession('current'); //.   Getting the session
-          // console.log(session);
-          set({ session }); //   setting the session state
+          const session = await account.getSession('current');
+          set({ session });
         } catch (error) {
           console.log(error);
+          // Clear invalid session
+          set({ session: null, jwt: null, user: null });
         }
       },
 
       async createAccount(name: string, email: string, password: string) {
         try {
-          // creating the user
           const response = await account.create(ID.unique(), email, password, name);
-          // console.log(response);
-          // creting userPrefs
+
+          // Create user prefs
           const res = await fetch('/api/create-prefs', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -73,7 +71,6 @@ export const useAuthStore = create<IAuthStore>()(
 
           return { success: true, message: 'Account created successfully' };
         } catch (error) {
-          // console.log(error);
           return {
             success: false,
             error: error instanceof AppwriteException ? error : null
@@ -86,7 +83,25 @@ export const useAuthStore = create<IAuthStore>()(
           const session = await account.createEmailPasswordSession(email, password);
           const [user, { jwt }] = await Promise.all([account.get<any>(), account.createJWT()]);
 
+          // Store auth data
           set({ session, user, jwt });
+
+          // Platform-specific token storage
+          if (!isServer) {
+            if (isMobile) {
+              // For mobile: Send JWT as header for future requests
+              // This will be handled by your HTTP client interceptor
+              localStorage.setItem('auth_token', jwt); // Fallback for mobile web
+            } else {
+              // For web: Store JWT in secure HTTP-only cookie via API route
+              await fetch('/api/auth/set-cookie', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ jwt })
+              });
+            }
+          }
 
           return { success: true, message: 'Logged in successfully' };
         } catch (error) {
@@ -98,13 +113,22 @@ export const useAuthStore = create<IAuthStore>()(
         }
       },
 
-      logout: async () => {
+      async logout() {
         try {
           await account.deleteSessions();
           set({ session: null, jwt: null, user: null });
+
+          // Clear platform-specific storage
+          if (!isServer) {
+            if (isMobile) {
+              localStorage.removeItem('auth_token');
+            } else {
+              await fetch('/api/auth/clear-cookie', { method: 'POST' });
+            }
+          }
+
           return { success: true, message: 'Logged out successfully' };
         } catch (error) {
-          // console.error(error);
           return {
             success: false,
             error: error instanceof AppwriteException ? error : null
@@ -124,7 +148,6 @@ export const useAuthStore = create<IAuthStore>()(
             };
           }
         });
-
         return { success: true, message: 'User state updated locally' };
       }
     })),

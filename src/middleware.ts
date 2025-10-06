@@ -1,21 +1,34 @@
 import { NextResponse, NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
-  /*
-    Checking the user is logged to access the private path else redilect the user to login page
-  */
-
   const path = request.nextUrl.pathname;
   const isPrivatePath = path === '/users/messages' || path === '/users/profile';
 
   if (isPrivatePath) {
-    // Get Appwrite's session cookie
-    const sessionCookie = request.cookies.get('a_session_' + process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID);
+    let token = null;
 
-    console.log(sessionCookie);
+    // Method 1: Check HTTP-only cookie (Web browsers)
+    token = request.cookies.get('auth-token')?.value;
 
-    // If no session cookie exists, redirect to login
-    if (!sessionCookie || !sessionCookie.value) {
+    // Method 2: Check Appwrite session cookie (backup)
+    if (!token) {
+      const appwriteCookie = request.cookies.get(`a_session_${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`);
+      token = appwriteCookie?.value;
+    }
+
+    // Method 3: Check Authorization header (Mobile apps)
+    if (!token) {
+      const authHeader = request.headers.get('authorization');
+      token = authHeader?.replace('Bearer ', '');
+    }
+
+    // Method 4: Check custom header (fallback)
+    if (!token) {
+      token = request.headers.get('x-auth-token');
+    }
+
+    // No valid token found
+    if (!token) {
       return NextResponse.redirect(new URL('/auth/login', request.url));
     }
   }
