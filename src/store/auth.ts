@@ -2,14 +2,16 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { persist } from 'zustand/middleware';
 
-import { AppwriteException, ID, Models, OAuthProvider } from 'appwrite';
+import { AppwriteException, ID, Models } from 'appwrite';
 import { account } from '@/models/client/config';
 
 // Step 1 : Interface Defination
 
-export interface userPrefs {
-  email: string;
-  username: string;
+export interface UserPrefs {
+  id?: string;
+  isCompleted?: boolean;
+  totalListings?: number;
+  theme?: 'light' | 'dark';
 }
 interface IAuthStore {
   session: Models.Session | null;
@@ -23,6 +25,7 @@ interface IAuthStore {
   login(email: string, password: string): Promise<{ success: boolean; error?: AppwriteException | null }>;
   createAccount(name: string, email: string, password: string): Promise<{ success: boolean; error?: AppwriteException | null }>;
   logout(): Promise<{ success: boolean; error?: AppwriteException | null }>;
+  updateUser(prefs: Partial<UserPrefs>): null;
 }
 
 //  Create Store hook
@@ -44,7 +47,7 @@ export const useAuthStore = create<IAuthStore>()(
       async verifySession() {
         try {
           const session = await account.getSession('current'); //.   Getting the session
-          console.log(session);
+          // console.log(session);
           set({ session }); //   setting the session state
         } catch (error) {
           console.log(error);
@@ -53,9 +56,22 @@ export const useAuthStore = create<IAuthStore>()(
 
       async createAccount(name: string, email: string, password: string) {
         try {
+          // creating the user
           const response = await account.create(ID.unique(), email, password, name);
           // console.log(response);
-          return { success: true };
+          // creting userPrefs
+          const res = await fetch('/api/create-prefs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userID: response.$id })
+          });
+
+          const result = await res.json();
+          if (!res.ok || !result.success) {
+            console.error('Failed to create prefs:', result.message);
+          }
+
+          return { success: true, message: 'Account created successfully' };
         } catch (error) {
           // console.log(error);
           return {
@@ -69,13 +85,10 @@ export const useAuthStore = create<IAuthStore>()(
         try {
           const session = await account.createEmailPasswordSession(email, password);
           const [user, { jwt }] = await Promise.all([account.get<any>(), account.createJWT()]);
-          // if (!user.prefs?.reputation) await account.updatePrefs<any>({
-          //   reputation: 0
-          // })
 
           set({ session, user, jwt });
 
-          return { success: true };
+          return { success: true, message: 'Logged in successfully' };
         } catch (error) {
           console.log(error);
           return {
@@ -89,7 +102,7 @@ export const useAuthStore = create<IAuthStore>()(
         try {
           await account.deleteSessions();
           set({ session: null, jwt: null, user: null });
-          return { success: true };
+          return { success: true, message: 'Logged out successfully' };
         } catch (error) {
           // console.error(error);
           return {
@@ -97,6 +110,22 @@ export const useAuthStore = create<IAuthStore>()(
             error: error instanceof AppwriteException ? error : null
           };
         }
+      },
+
+      async updateUser(prefs: Partial<UserPrefs>) {
+        set((state) => {
+          if (state.user) {
+            state.user = {
+              ...state.user,
+              prefs: {
+                ...state.user.prefs,
+                ...prefs
+              }
+            };
+          }
+        });
+
+        return { success: true, message: 'User state updated locally' };
       }
     })),
     {

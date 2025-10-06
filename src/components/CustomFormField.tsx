@@ -23,8 +23,6 @@ import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { Select, SelectContent, SelectTrigger, SelectValue } from './ui/select';
 
-
-
 export enum FormFieldType {
   INPUT = 'input',
   TEXTAREA = 'textarea',
@@ -59,10 +57,10 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
 
           {!props.iconSrc && props.name === 'email' && (
             <div className="flex items-center justify-center ml-2 border-none">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-muted-foreground">
                 <path
                   d="M4 6L10 12M20 6L14 12M10 12L10.5858 12.5858C11.3668 13.3668 12.6332 13.3668 13.4142 12.5858L14 12M10 12L3.87868 18.1213M14 12L20.1213 18.1213M20.1213 18.1213C20.6642 17.5784 21 16.8284 21 16V7C21 5.89543 20.1046 5 19 5H5C3.89543 5 3 5.89543 3 7V16C3 16.8284 3.33579 17.5784 3.87868 18.1213M20.1213 18.1213C19.5784 18.6642 18.8284 19 18 19H6C5.17157 19 4.42157 18.6642 3.87868 18.1213"
-                  stroke="#666666"
+                  stroke="currentColor"
                   strokeWidth="1.5"
                   strokeLinecap="round"
                 />
@@ -72,10 +70,10 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
 
           {!props.iconSrc && props.name === 'username' && (
             <div className="flex items-center justify-center ml-2 border-none">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-muted-foreground">
                 <path
                   d="M19 21C19 17.6863 16.3137 15 13 15H11C7.68629 15 5 17.6863 5 21M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z"
-                  stroke="#666666"
+                  stroke="currentColor"
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -88,7 +86,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
             <Input
               placeholder={props.placeholder}
               {...field}
-              className="text-sm leading-[18px]  font-medium focus-visible:ring-0 focus-visible:ring-offset-0  border-none text-card-foreground placeholder:text-muted-foreground"
+              className="text-sm leading-[18px] font-medium focus-visible:ring-0 focus-visible:ring-offset-0 border-none text-card-foreground placeholder:text-muted-foreground"
               id={props.name}
             />
           </FormControl>
@@ -109,7 +107,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
               id={props.name}
               placeholder={props.placeholder}
               {...field}
-              className="text-[14px] leading-[18px] font-medium focus-visible:ring-0 focus-visible:ring-offset-0  border-none  rounded-tl-full rounded-bl-full hover:bg-slate-300"
+              className="text-[14px] leading-[18px] font-medium focus-visible:ring-0 focus-visible:ring-offset-0 border-none rounded-tl-full rounded-bl-full hover:bg-muted"
             />
           </FormControl>
         </div>
@@ -117,12 +115,12 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
 
     case FormFieldType.PASSWORD:
       return (
-        <div className={`flex rounded-md border hover:shadow-xl transition ease-in-out  duration-400 `}>
+        <div className={`flex rounded-md border hover:shadow-xl transition ease-in-out duration-400 `}>
           {props.iconSrc && <Image src={props.iconSrc} height={24} width={24} alt={props.iconAlt || 'icon'} className="ml-2" />}
 
           {!props.iconSrc && (props.name === 'password' || props.name === 'confirmPassword') && (
-            <div className="flex items-center justify-center ml-2">
-              <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#666666">
+            <div className="flex items-center justify-center ml-2 text-muted-foreground">
+              <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor">
                 <path d="M80-200v-80h800v80H80Zm46-242-52-30 34-60H40v-60h68l-34-58 52-30 34 58 34-58 52 30-34 58h68v60h-68l34 60-52 30-34-60-34 60Zm320 0-52-30 34-60h-68v-60h68l-34-58 52-30 34 58 34-58 52 30-34 58h68v60h-68l34 60-52 30-34-60-34 60Zm320 0-52-30 34-60h-68v-60h68l-34-58 52-30 34 58 34-58 52 30-34 58h68v60h-68l34 60-52 30-34-60-34 60Z" />
               </svg>
             </div>
@@ -139,9 +137,9 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
           </FormControl>
           <button type="button" className=" px-1" onClick={() => setShowPassword(!showPassword)}>
             {showPassword ? (
-              <EyeOff size={20} className="text-[#919090] hover:cursor-pointer" />
+              <EyeOff size={20} className="text-muted-foreground hover:cursor-pointer" />
             ) : (
-              <Eye size={20} className="text-[#666666] hover:cursor-pointer" />
+              <Eye size={20} className="text-muted-foreground hover:cursor-pointer" />
             )}
           </button>
         </div>
@@ -154,7 +152,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
             id={props.name}
             placeholder={props.placeholder}
             {...field}
-            className=" border-dark-500 focus-visible:ring-0 focus-visible:ring-offset-0 h-[100px] text-card-foreground placeholder:text-muted-foreground"
+            className="border-input focus-visible:ring-0 focus-visible:ring-offset-0 h-[100px] text-card-foreground placeholder:text-muted-foreground"
             disabled={props.disabled}
           />
         </FormControl>
@@ -244,9 +242,8 @@ const CustomFormField = (props: CustomProps) => {
       name={name}
       render={({ field }) => (
         <FormItem className={`${className}`}>
-          {label && <FormLabel className=" text-card-foreground  ">{label}</FormLabel>}
+          {label && <FormLabel className="text-card-foreground">{label}</FormLabel>}
           <RenderInput field={field} props={props} />
-
           <FormMessage className="text-destructive" />
         </FormItem>
       )}

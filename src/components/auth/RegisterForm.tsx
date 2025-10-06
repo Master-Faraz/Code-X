@@ -131,7 +131,7 @@ const RegisterForm = () => {
                                     Already have an account{' '}
 
                                     <Link
-                                        href="/login"
+                                        href="/auth/login"
                                         className=" text-primary hover:text-primary/80 underline-offset-2 hover:underline hover:cursor-pointer"
                                     >
                                         Login

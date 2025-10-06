@@ -85,7 +85,7 @@ const LoginForm = () => {
 
                             <div className="flex justify-end">
                                 <Link
-                                    href="/forgot-password"
+                                    href="/auth/forgot-password"
                                     className="text-primary hover:text-primary/80 hover:underline underline-offset-2 text-sm"
                                 >
                                     Forgot password?
@@ -109,7 +109,7 @@ const LoginForm = () => {
                                 <p>
                                     You don't have an account yet? {'  '}
                                     <Link
-                                        href="/register"
+                                        href="/auth/register"
                                         className=" text-primary hover:text-primary/80 underline-offset-2 hover:underline hover:cursor-pointer"
                                     >
                                         Sign up

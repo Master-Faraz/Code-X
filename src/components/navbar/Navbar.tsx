@@ -7,7 +7,7 @@ import { CircleUserRound, Menu, MessageCircleMore, UserPlus, X } from 'lucide-re
 import { Button } from '../ui/button';
 import { NAV_LINKS } from '@/constants/navbarConstants';
 import { AnimatedBackground } from '../../../components/motion-primitives/animated-background';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
 import LogoutBtn from '../LogoutBtn';
 import dynamic from 'next/dynamic';
@@ -24,6 +24,23 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+
+  const pathname = usePathname() || ''
+
+  // list routes where navbar should be hidden
+  const hideOn = [
+    '/profile',
+    '/users',        // hide on /users root
+    '/users/profile' // hide on /users/profile specifically
+    // add other routes or patterns as needed
+  ]
+
+  // you can match startsWith for nested routes
+  const shouldHide = hideOn.some(p => pathname === p || pathname.startsWith(p + '/'))
+
+  if (shouldHide) return null
+
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-transparent text-card-foreground">
@@ -79,13 +96,13 @@ const Navbar = () => {
           ) : (
             <div className='flex space-x-2'>
               <ThemeToggler />
-              <Button variant="ghost" className="rounded-full hover:scale-110 transition-all duration-200 cursor-pointer" onClick={() => router.push('/login')}>
+              <Button variant="ghost" className="rounded-full hover:scale-110 transition-all duration-200 cursor-pointer" onClick={() => router.push('/auth/login')}>
                 <div className="flex items-center space-x-1 ">
                   <CircleUserRound size={24} />
                   <span>Login</span>
                 </div>
               </Button>
-              <Button className="rounded-xl hover:scale-110 transition-all duration-200" onClick={() => router.push('/register')}>
+              <Button className="rounded-xl hover:scale-110 transition-all duration-200" onClick={() => router.push('/auth/register')}>
                 <div className="flex items-center space-x-1 text-secondary-foreground">
                   <UserPlus size={24} />
                   <span>Sign up</span>
