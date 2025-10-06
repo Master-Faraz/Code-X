@@ -18,6 +18,8 @@ import uploadImage from '@/actions/imageUploader.action'
 import { CldImage } from 'next-cloudinary'
 import { ImageSizeKey } from '@/constants/imageUploaderConstants'
 import { HttpError } from '@/utils/httpError'
+import CreateUserDocument from '@/actions/createUserDocument.action'
+import { updateUserPrefs } from '@/actions/userPrefs.action'
 
 // Combined schema - mapping to your user collection structure
 const formSchema = z.object({
@@ -144,11 +146,11 @@ const ProfileCompletionPage = () => {
                     toast.error('Email is required')
                     return
                 }
-                // const res = await requestUserVerificationEmail(email);
-                // if (!res.success) {
-                //     toast.error(res.error);
-                //     console.error(res.error)
-                // }
+                const res = await requestUserVerificationEmail(email);
+                if (!res.success) {
+                    toast.error(res.error);
+                    console.error(res.error)
+                }
                 await new Promise(resolve => setTimeout(resolve, 1500)) // Simulate API call
                 setOtpSent(true)
                 toast.success('OTP sent successfully')
@@ -158,11 +160,11 @@ const ProfileCompletionPage = () => {
                     toast.error('Please enter a valid 6-digit OTP')
                     return
                 }
-                // const res = await verifyUserEmailWithOtp(email, otp);
-                // if (!res.success) {
-                //     toast.error(res.error);
-                //     console.error(res.error)
-                // }
+                const res = await verifyUserEmailWithOtp(email, otp);
+                if (!res.success) {
+                    toast.error(res.error);
+                    console.error(res.error)
+                }
                 await new Promise(resolve => setTimeout(resolve, 1500)) // Simulate API call
                 form.setValue('isEmailVerified', true)
                 toast.success('Email verified successfully')
@@ -243,9 +245,11 @@ const ProfileCompletionPage = () => {
                 profilePicId = await uploadProfilePicture() || ''
             }
 
+            let userID = user?.$id || ''
+
             // Prepare data for your user collection
             const userData = {
-                uid: user?.$id || '', // Id from authstore
+                uid: userID, // Id from authstore
                 fname: values.fname,
                 lname: values.lname,
                 email: values.email,
@@ -254,8 +258,6 @@ const ProfileCompletionPage = () => {
                 dob: values.dob,
                 gender: values.gender,
                 is_complete: true,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
                 // Optional plan fields - set defaults or leave undefined
                 plan_type: 'Free', // Default plan
                 plan_start_date: null,
@@ -263,8 +265,12 @@ const ProfileCompletionPage = () => {
             }
 
             // Your complete profile API call here
-            // const res = await completeProfile(userData)
-            console.log('Profile data to save:', userData)
+            const res = await CreateUserDocument(userData)
+
+            await updateUserPrefs({
+                userID: userID,
+                updates: { isCompleted: true, id: res.data?.$id }
+            })
 
             await new Promise(resolve => setTimeout(resolve, 1500)) // Simulate API call
             toast.success('Profile completed successfully!')

@@ -19,11 +19,11 @@ export default async function createUserCollection() {
     databases.createDatetimeAttribute(db, userCollection, 'dob', true),
     databases.createEnumAttribute(db, userCollection, 'gender', ['Male', 'Female', 'Others'], true),
 
-    databases.createBooleanAttribute(db, userCollection, 'is_complete', false, false),
-    databases.createDatetimeAttribute(db, userCollection, 'created_at', true),
-    databases.createDatetimeAttribute(db, userCollection, 'updated_at', true),
+    databases.createBooleanAttribute(db, userCollection, 'is_completed', false, false),
+    // databases.createDatetimeAttribute(db, userCollection, 'created_at', true),
+    // databases.createDatetimeAttribute(db, userCollection, 'updated_at', true),
 
-    databases.createEnumAttribute(db, userCollection, 'plan_type', ['Free', 'Premium', 'Boost'], false),
+    databases.createEnumAttribute(db, userCollection, 'plan_type', ['Free', 'Premium', 'Professional'], false),
     databases.createDatetimeAttribute(db, userCollection, 'plan_start_date', false),
     databases.createDatetimeAttribute(db, userCollection, 'plan_end_date', false)
   ]);
@@ -38,29 +38,7 @@ export default async function createUserCollection() {
     databases.createIndex(db, userCollection, 'idx_email', IndexType.Unique, ['email']),
 
     databases.createIndex(db, userCollection, 'idx_plan_type', IndexType.Key, ['plan_type']),
-    databases.createIndex(db, userCollection, 'idx_plan_end', IndexType.Key, ['plan_end_date'])
+    databases.createIndex(db, userCollection, 'idx_plan_end', IndexType.Key, ['plan_end_date']),
+    databases.createIndex(db, userCollection, 'idx_is_completed', IndexType.Key, ['is_completed'])
   ]);
 }
-
-// Just remember to add these permissions while creating the users
-
-// await databases.createDocument(
-//   db,
-//   userCollection,
-//   'unique()',
-//   {
-//     uid: user.$id,
-//     name: user.name,
-//     email: user.email,
-//     profile_pic: "", // or uploaded URL
-//     credits: 0,
-//     is_verified: false,
-//     created_at: new Date().toISOString(),
-//     updated_at: new Date().toISOString(),
-//   },
-//   [
-//     Permission.read(`user:${user.$id}`),
-//     Permission.update(`user:${user.$id}`),
-//     Permission.delete(`user:${user.$id}`)
-//   ]
-// );

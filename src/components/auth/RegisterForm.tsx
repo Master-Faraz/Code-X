@@ -12,6 +12,7 @@ import CustomFormField, { FormFieldType } from '@/components/CustomFormField';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/card';
+import { useRouter } from 'next/navigation';
 
 // Form Schema with Zod validation
 const formSchema = z
@@ -27,11 +28,15 @@ const formSchema = z
     });
 
 const RegisterForm = () => {
+
+    const router = useRouter()
+
     // creating all the states and variables
     const [loading, setLoading] = useState(false);
     // const { createAccount, login } = useAuthStore();
     const createAccount = useAuthStore((state) => state.createAccount);
     const login = useAuthStore((state) => state.login);
+
 
     //   Creating Form using react-hook-form and setup zod validation
     const form = useForm<z.infer<typeof formSchema>>({
@@ -55,6 +60,8 @@ const RegisterForm = () => {
 
             await login(data.email, data.password);
             toast.success('Account Created Successfully');
+            router.push("/users/profile")
+
         } catch (error: any) {
             toast.error('Something went wrong');
             toast.error(error.message);
