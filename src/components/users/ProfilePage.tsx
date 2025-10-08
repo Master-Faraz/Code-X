@@ -22,6 +22,9 @@ import { toast } from 'sonner'
 import { CldImage } from 'next-cloudinary'
 import { Label } from '../ui/label'
 import { SelectItem } from '../ui/select'
+import { useAuthStore } from '@/store/auth'
+
+
 
 const profileSchema = z.object({
     fname: z.string().min(2, 'First name must be at least 2 characters'),
@@ -56,11 +59,19 @@ const dummyUserData = {
     EmailisVerified: true,
 }
 
+interface profileProps {
+    uid: string
+    id: string,
+}
 
-export default function ProfilePage() {
+const ProfilePage = ({ id, uid }: profileProps) => {
     const [isEditing, setIsEditing] = useState(false)
     const [loading, setLoading] = useState(false)
     const [userData, setUserData] = useState(dummyUserData)
+    const user = useAuthStore(state => state.user);
+
+    console.log("user data ")
+    console.log(user)
 
 
     const form = useForm<ProfileFormValues>({
@@ -494,3 +505,5 @@ export default function ProfilePage() {
         </div>
     )
 }
+
+export default React.memo(ProfilePage);

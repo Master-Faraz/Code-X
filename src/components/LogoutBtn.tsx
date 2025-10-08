@@ -5,7 +5,8 @@ import { toast } from 'sonner';
 import { LogOut } from 'lucide-react';
 
 const LogoutBtn = () => {
-  const { logout } = useAuthStore();
+  const logout = useAuthStore(state => state.logout);
+
 
   const handleLogout = async () => {
     try {

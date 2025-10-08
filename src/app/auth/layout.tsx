@@ -7,7 +7,8 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 
 const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   // Getting the session
-  const { session, hydrated } = useAuthStore();
+  const session = useAuthStore(state => state.session);
+  const hydrated = useAuthStore(state => state.hydrated);
 
   const router = useRouter();
 

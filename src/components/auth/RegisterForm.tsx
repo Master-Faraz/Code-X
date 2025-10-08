@@ -33,7 +33,6 @@ const RegisterForm = () => {
 
     // creating all the states and variables
     const [loading, setLoading] = useState(false);
-    // const { createAccount, login } = useAuthStore();
     const createAccount = useAuthStore((state) => state.createAccount);
     const login = useAuthStore((state) => state.login);
 

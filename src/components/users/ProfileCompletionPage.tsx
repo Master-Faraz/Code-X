@@ -41,7 +41,8 @@ const ProfileCompletionPage = () => {
     const [profilePicFile, setProfilePicFile] = useState<File | null>(null)
     const [profilePicPreview, setProfilePicPreview] = useState<string | null>(null)
     const [uploadingImage, setUploadingImage] = useState(false)
-    const { user } = useAuthStore()
+    const user = useAuthStore(state => state.user);
+
 
     // Create a type from your schema
     type ProfileFormValues = z.infer<typeof formSchema>;

@@ -40,7 +40,8 @@ const page = () => {
 
   // const [first, setfirst] = useState(second)
 
-  const { user } = useAuthStore()
+  const user = useAuthStore(state => state.user);
+
 
   const userID = user?.$id || ""
 

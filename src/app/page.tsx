@@ -6,7 +6,8 @@ import ThemeToggler from '@/components/ThemeToggler';
 import { useAuthStore } from '@/store/auth';
 
 export default function Home() {
-  const { user, hydrated } = useAuthStore();
+  const user = useAuthStore(state => state.user);
+  const hydrated = useAuthStore(state => state.hydrated);
 
   if (!hydrated) return null; // Wait for Zustand to rehydrate
   return (
