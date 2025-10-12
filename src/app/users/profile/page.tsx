@@ -1,7 +1,7 @@
 "use client";
 
-import ProfilePage from "@/components/users/ProfilePage";
-import ProfileCompletionPage from "@/components/users/ProfileCompletionPage";
+import DisplayProfilePage from "@/components/users/DisplayProfilePage";
+import CreateProfilePage from "@/components/users/CreateProfilePage";
 import React, { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth";
 import getUserPrefs from "@/utils/getUserPrefs";
@@ -32,7 +32,7 @@ const Page = () => {
         getprefs();
     }, [user]);
 
-    if (prefs === null) {
+    if (!prefs) {
         return (
             <div className="flex flex-col items-center justify-center">
                 <h1>Loading...</h1>
@@ -42,7 +42,7 @@ const Page = () => {
 
     return (
         <div className="w-full h-[calc(100vh-4rem)] flex items-center justify-center">
-            {prefs.isCompleted ? <ProfilePage id={prefs.id} uid={user?.$id} /> : <ProfileCompletionPage />}
+            {prefs.isCompleted ? <DisplayProfilePage prefs={prefs} /> : <CreateProfilePage setPrefs={setPrefs} />}
         </div>
     );
 };

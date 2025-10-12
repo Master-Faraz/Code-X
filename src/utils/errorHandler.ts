@@ -1,6 +1,7 @@
 // src/lib/errorHandler.ts
 
-interface AppErrorOptions {
+export interface ErrorType {
+  success: boolean;
   message: string;
   error?: unknown;
   statusCode?: number;
@@ -12,7 +13,7 @@ export class AppError extends Error {
   context?: string;
   originalError?: unknown;
 
-  constructor({ message, error, statusCode = 500, context }: AppErrorOptions) {
+  constructor({ message, error, statusCode = 500, context }: ErrorType) {
     super(message);
     this.name = 'AppError';
     this.statusCode = statusCode;
@@ -31,6 +32,5 @@ export class AppError extends Error {
  */
 export function handleServerError(message: string, error?: unknown, context?: string, statusCode?: number): never {
   console.error(`[${context || 'ServerError'}] ${message}`, error instanceof Error ? error.stack : error);
-
-  throw new AppError({ message, error, context, statusCode });
+  throw new AppError({ success: false, message, error, context, statusCode });
 }

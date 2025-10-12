@@ -70,27 +70,27 @@ export default function ResetPasswordForm() {
 
     setIsLoading(false);
 
-    // try {
-    //   // Replace with your API call
-    //   const response = await fetch('/api/send-otp', {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({ email: data.email })
-    //   });
+    try {
+      // Replace with your API call
+      const response = await fetch('/api/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: data.email })
+      });
 
-    //   if (response.ok) {
-    //     setEmail(data.email);
-    //     setOtpSent(true);
-    //     setCurrentStep(2);
-    //   } else {
-    //     throw new Error('Failed to send OTP');
-    //   }
-    // } catch (error) {
-    //   console.error('Error sending OTP:', error);
-    //   emailForm.setError('email', { message: 'Failed to send OTP. Please try again.' });
-    // } finally {
-    //   setIsLoading(false);
-    // }
+      if (response.ok) {
+        setEmail(data.email);
+        setOtpSent(true);
+        setCurrentStep(2);
+      } else {
+        throw new Error('Failed to send OTP');
+      }
+    } catch (error) {
+      console.error('Error sending OTP:', error);
+      emailForm.setError('email', { message: 'Failed to send OTP. Please try again.' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Step 2: Verify OTP
@@ -102,25 +102,25 @@ export default function ResetPasswordForm() {
     setCurrentStep(3);
     setIsLoading(false);
 
-    // try {
-    //   // Replace with your API call
-    //   const response = await fetch('/api/verify-otp', {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({ email, otp: data.otp })
-    //   });
+    try {
+      // Replace with your API call
+      const response = await fetch('/api/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp: data.otp })
+      });
 
-    //   if (response.ok) {
-    //     setCurrentStep(3);
-    //   } else {
-    //     throw new Error('Invalid OTP');
-    //   }
-    // } catch (error) {
-    //   console.error('Error verifying OTP:', error);
-    //   otpForm.setError('otp', { message: 'Invalid OTP. Please try again.' });
-    // } finally {
-    //   setIsLoading(false);
-    // }
+      if (response.ok) {
+        setCurrentStep(3);
+      } else {
+        throw new Error('Invalid OTP');
+      }
+    } catch (error) {
+      console.error('Error verifying OTP:', error);
+      otpForm.setError('otp', { message: 'Invalid OTP. Please try again.' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Step 3: Reset Password
@@ -134,29 +134,29 @@ export default function ResetPasswordForm() {
     setCurrentStep(4);
     setIsLoading(false);
 
-    // try {
-    //   // Replace with your API call
-    //   const response = await fetch('/api/reset-password', {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({
-    //       email,
-    //       password: data.password
-    //     })
-    //   });
+    try {
+      // Replace with your API call
+      const response = await fetch('/api/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          password: data.password
+        })
+      });
 
-    //   if (response.ok) {
-    //     setIsSuccess(true);
-    //     setCurrentStep(4);
-    //   } else {
-    //     throw new Error('Failed to reset password');
-    //   }
-    // } catch (error) {
-    //   console.error('Error resetting password:', error);
-    //   passwordForm.setError('password', { message: 'Failed to reset password. Please try again.' });
-    // } finally {
-    //   setIsLoading(false);
-    // }
+      if (response.ok) {
+        setIsSuccess(true);
+        setCurrentStep(4);
+      } else {
+        throw new Error('Failed to reset password');
+      }
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      passwordForm.setError('password', { message: 'Failed to reset password. Please try again.' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const goBack = () => {

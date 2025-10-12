@@ -3,6 +3,8 @@ import { immer } from 'zustand/middleware/immer';
 import { persist } from 'zustand/middleware';
 import { AppwriteException, ID, Models } from 'appwrite';
 import { account } from '@/models/client/config';
+import { createErrorResponse, createSuccessResponse } from '@/utils/responseHandler';
+import { handleServerError } from '@/utils/errorHandler';
 
 export interface UserPrefs {
   id?: string;
@@ -23,7 +25,7 @@ interface IAuthStore {
   login(email: string, password: string): Promise<{ success: boolean; error?: AppwriteException | null }>;
   createAccount(name: string, email: string, password: string): Promise<{ success: boolean; error?: AppwriteException | null }>;
   logout(): Promise<{ success: boolean; error?: AppwriteException | null }>;
-  updateUser(prefs: Partial<UserPrefs>): null;
+  updateUserPrefsState(prefs: Partial<UserPrefs>): { success: boolean; message: string };
 }
 
 // Platform detection helper
@@ -66,15 +68,14 @@ export const useAuthStore = create<IAuthStore>()(
 
           const result = await res.json();
           if (!res.ok || !result.success) {
-            console.error('Failed to create prefs:', result.message);
+            // console.error('Failed to create prefs:', result.message);
+            handleServerError('Failed to create prefs', result, 'create account in zustand store');
           }
 
-          return { success: true, message: 'Account created successfully' };
+          // return { success: true, message: 'Account created successfully' };
+          return createSuccessResponse('Account created successfully');
         } catch (error) {
-          return {
-            success: false,
-            error: error instanceof AppwriteException ? error : null
-          };
+          return handleServerError('There is some problems while Signing up', error);
         }
       },
 
@@ -103,13 +104,14 @@ export const useAuthStore = create<IAuthStore>()(
             }
           }
 
-          return { success: true, message: 'Logged in successfully' };
-        } catch (error) {
-          console.log(error);
-          return {
-            success: false,
-            error: error instanceof AppwriteException ? error : null
-          };
+          // return { success: true, message: 'Logged in successfully' };
+          return createSuccessResponse('Logged in successfully');
+        } catch (error: any) {
+          // return {
+          //   success: false,
+          //   error: error instanceof AppwriteException ? error : null
+          // };
+          return handleServerError('Failed to login', error);
         }
       },
 
@@ -127,16 +129,18 @@ export const useAuthStore = create<IAuthStore>()(
             }
           }
 
-          return { success: true, message: 'Logged out successfully' };
+          // return { success: true, message: 'Logged out successfully' };
+          return createSuccessResponse('Logged out successfully');
         } catch (error) {
-          return {
-            success: false,
-            error: error instanceof AppwriteException ? error : null
-          };
+          // return {
+          //   success: false,
+          //   error: error instanceof AppwriteException ? error : null
+          // };
+          return createErrorResponse('Problems in logging out the user', error);
         }
       },
 
-      async updateUser(prefs: Partial<UserPrefs>) {
+      updateUserPrefsState(prefs: Partial<UserPrefs>) {
         set((state) => {
           if (state.user) {
             state.user = {
@@ -148,7 +152,8 @@ export const useAuthStore = create<IAuthStore>()(
             };
           }
         });
-        return { success: true, message: 'User state updated locally' };
+        // return { success: true, message: 'User state updated locally' };
+        return createSuccessResponse('User state updated locally');
       }
     })),
     {

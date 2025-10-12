@@ -1,10 +1,22 @@
 "use client"
-import { updateUserPrefs, createUserPrefs } from '@/actions/userPrefs.action'
+import { updateUserPrefs } from '@/actions/userPrefs.action'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/store/auth'
 import getUserPrefs from '@/utils/getUserPrefs'
 import React, { useState } from 'react'
 import { toast } from 'sonner'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Camera } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { DialogClose } from '@radix-ui/react-dialog'
 
 const page = () => {
   // const data = {
@@ -38,7 +50,6 @@ const page = () => {
   //   "accessedAt": "2025-09-12T15:31:36.029+00:00"
   // }
 
-  // const [first, setfirst] = useState(second)
 
   const user = useAuthStore(state => state.user);
 
@@ -47,8 +58,9 @@ const page = () => {
 
   const handlePrefs = async () => {
     try {
-      await createUserPrefs({ userID })
+      // await createUserPrefs({ userID })
       // console.log(response)
+      console.log("HEHE")
     } catch (error: any) {
       console.error("Error while creating prefs " + error?.message)
     }
@@ -81,6 +93,63 @@ const page = () => {
       <Button onClick={handlePrefs}>Get id</Button>
       <Button onClick={handlePrefsUpdate}>update</Button>
       <Button onClick={getuserPrefsbtn}>get user prefs</Button>
+      <Dialog>
+        <DialogTrigger><Camera className='text-red-300 hover:text-amber-300' /></DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you absolutely sure?</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. This will permanently delete your account
+              and remove your data from our servers.
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+
+
+
+      <Dialog>
+        <form>
+
+          <DialogTrigger asChild>
+            <Button variant="outline">Open Dialog</Button>
+          </DialogTrigger>
+
+          <DialogContent className="sm:max-w-[425px]">
+
+            <DialogHeader>
+              <DialogTitle>Edit profile</DialogTitle>
+              <DialogDescription>
+                Make changes to your profile here. Click save when you&apos;re
+                done.
+              </DialogDescription>
+            </DialogHeader>
+
+
+            <div className="grid gap-4">
+              <div className="grid gap-3">
+                <div>Name</div>
+                <Input id="name-1" name="name" defaultValue="Pedro Duarte" />
+              </div>
+              <div className="grid gap-3">
+                <div >Username</div>
+                <Input id="username-1" name="username" defaultValue="@peduarte" />
+              </div>
+            </div>
+
+
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
+              <Button type="submit">Save changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </form>
+      </Dialog>
+
+
+
     </div>
   )
 }

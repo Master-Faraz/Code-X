@@ -20,6 +20,8 @@ import { ImageSizeKey } from '@/constants/imageUploaderConstants'
 import { HttpError } from '@/utils/httpError'
 import CreateUserDocument from '@/actions/createUserDocument.action'
 import { updateUserPrefs } from '@/actions/userPrefs.action'
+import { useRouter } from 'next/navigation'
+import { UserPrefsType } from '@/app/users/profile/page'
 
 // Combined schema - mapping to your user collection structure
 const formSchema = z.object({
@@ -34,7 +36,12 @@ const formSchema = z.object({
     isEmailVerified: z.boolean()
 })
 
-const ProfileCompletionPage = () => {
+interface ProfileCompletionPageProps {
+    setPrefs: React.Dispatch<React.SetStateAction<UserPrefsType | null>>;
+}
+
+
+const ProfileCompletionPage: React.FC<ProfileCompletionPageProps> = ({ setPrefs }) => {
     const [step, setStep] = useState(1)
     const [loading, setLoading] = useState(false)
     const [otpSent, setOtpSent] = useState(false)
@@ -42,6 +49,7 @@ const ProfileCompletionPage = () => {
     const [profilePicPreview, setProfilePicPreview] = useState<string | null>(null)
     const [uploadingImage, setUploadingImage] = useState(false)
     const user = useAuthStore(state => state.user);
+    const router = useRouter()
 
 
     // Create a type from your schema
@@ -117,7 +125,8 @@ const ProfileCompletionPage = () => {
                 toast.error('Failed to upload profile picture')
                 console.error('Upload failed:', err)
             }
-            throw err // Re-throw to handle in calling function
+            // throw err // Re-throw to handle in calling function
+            toast.error("Something went wrong while uploading the image")
         } finally {
             setUploadingImage(false)
         }
@@ -137,6 +146,37 @@ const ProfileCompletionPage = () => {
         }
     }
 
+    // Profile Picture Avatar Component
+    const ProfilePictureAvatar = () => {
+        if (profilePicPreview) {
+            return (
+                <div className="relative">
+                    <img
+                        src={profilePicPreview}
+                        alt="Profile preview"
+                        className="w-20 h-20 rounded-full object-cover border-4 border-background shadow-lg"
+                    />
+                    <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute -top-2 -right-2 w-6 h-6 rounded-full p-0"
+                        onClick={removeProfilePicture}
+                    >
+                        <X className="w-3 h-3" />
+                    </Button>
+                </div>
+            )
+        }
+
+        return (
+            <div className="w-20 h-20 rounded-full bg-muted border-4 border-background shadow-lg flex items-center justify-center">
+                <Camera className="w-8 h-8 text-muted-foreground" />
+            </div>
+        )
+    }
+
+
     // Handle email verification and OTP
     const handleEmailVerification = async () => {
         setLoading(true)
@@ -149,8 +189,10 @@ const ProfileCompletionPage = () => {
                 }
                 const res = await requestUserVerificationEmail(email);
                 if (!res.success) {
-                    toast.error(res.error);
-                    console.error(res.error)
+                    toast.error(res.message);
+                    if (res.data?.message) toast.error(res.data?.message);
+                    console.error(res.data)
+
                 }
                 await new Promise(resolve => setTimeout(resolve, 1500)) // Simulate API call
                 setOtpSent(true)
@@ -163,8 +205,9 @@ const ProfileCompletionPage = () => {
                 }
                 const res = await verifyUserEmailWithOtp(email, otp);
                 if (!res.success) {
-                    toast.error(res.error);
-                    console.error(res.error)
+                    toast.error(res.message);
+                    if (res.data?.message) toast.error(res.data?.message);
+                    console.error(res.data)
                 }
                 await new Promise(resolve => setTimeout(resolve, 1500)) // Simulate API call
                 form.setValue('isEmailVerified', true)
@@ -200,7 +243,7 @@ const ProfileCompletionPage = () => {
             }
 
             // No image upload here - just move to next step
-            await new Promise(resolve => setTimeout(resolve, 800)) // Simulate validation
+            // await new Promise(resolve => setTimeout(resolve, 800)) // Simulate validation
             toast.success('Basic information saved')
             setStep(3)
         } catch (error: any) {
@@ -265,19 +308,34 @@ const ProfileCompletionPage = () => {
                 plan_end_date: null
             }
 
-            // Your complete profile API call here
-            const res = await CreateUserDocument(userData)
+            // Creating the user document in users collection
+            const user_document_created = await CreateUserDocument(userData)
 
-            await updateUserPrefs({
+            // if the user is not created then return
+            if (!user_document_created?.success || !user_document_created.data?.$id) {
+                toast.error('Failed to create user document');
+                return;
+            }
+
+            // Updating the prefs only after successful document creation
+            const isPrefsUpdated = await updateUserPrefs({
                 userID: userID,
-                updates: { isCompleted: true, id: res.data?.$id }
+                updates: { isCompleted: true, id: user_document_created.data?.$id }
             })
 
-            await new Promise(resolve => setTimeout(resolve, 1500)) // Simulate API call
+            setPrefs({ id: user_document_created.data?.$id, isCompleted: true, totalListings: 0 })
+
+
+            // await new Promise(resolve => setTimeout(resolve, 1500)) // Simulate API call
             toast.success('Profile completed successfully!')
+
 
             // Redirect to dashboard or main app
             console.log('Profile completed:', userData)
+
+            router.refresh()
+
+
         } catch (error: any) {
             toast.error('Failed to complete profile')
             if (error?.message) {
@@ -320,38 +378,11 @@ const ProfileCompletionPage = () => {
     const stepConfig = getStepConfig()
     const IconComponent = stepConfig.icon
 
+
+
     // Get current email value for display
     const currentEmail = form.watch('email') || user?.email || ''
 
-    // Profile Picture Avatar Component
-    const ProfilePictureAvatar = () => {
-        if (profilePicPreview) {
-            return (
-                <div className="relative">
-                    <img
-                        src={profilePicPreview}
-                        alt="Profile preview"
-                        className="w-20 h-20 rounded-full object-cover border-4 border-background shadow-lg"
-                    />
-                    <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        className="absolute -top-2 -right-2 w-6 h-6 rounded-full p-0"
-                        onClick={removeProfilePicture}
-                    >
-                        <X className="w-3 h-3" />
-                    </Button>
-                </div>
-            )
-        }
-
-        return (
-            <div className="w-20 h-20 rounded-full bg-muted border-4 border-background shadow-lg flex items-center justify-center">
-                <Camera className="w-8 h-8 text-muted-foreground" />
-            </div>
-        )
-    }
 
     return (
         <div className='w-full flex items-center justify-center p-4  max-h-[calc(100vh-4rem)]'>
@@ -431,6 +462,7 @@ const ProfileCompletionPage = () => {
                                                 <ProfilePictureAvatar />
                                             </div>
 
+                                            {/* Profile pic update Button */}
                                             <div className="flex flex-col items-center space-y-2">
                                                 <Input
                                                     id="profile-pic-input"

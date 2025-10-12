@@ -18,6 +18,7 @@ interface UploadImagePayload {
   folder?: string;
   context?: string;
   sizeKeys?: ImageSizeKey[];
+  oldimageID?: string;
 }
 
 const uploadImage = async (payload: UploadImagePayload) => {

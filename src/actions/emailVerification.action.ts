@@ -1,55 +1,48 @@
-// actions/emailVerification.ts
 'use server';
 
 import { generateAndStoreOtp, checkAndMarkResend, verifyOtp } from '@/lib/otpCache';
 import { sendVerificationEmail } from '@/lib/emailService';
 import { users } from '@/models/server/config';
 import { Query } from 'node-appwrite';
+import { handleServerError } from '@/utils/errorHandler';
+import { createSuccessResponse } from '@/utils/responseHandler';
 
 // Step 1: Send OTP for email verification
 export async function requestEmailVerification(email: string) {
-  // Throttle resends
-  const resendCheck = checkAndMarkResend(email);
-  if (!resendCheck.ok) return { success: false, message: resendCheck.error };
+  try {
+    const resendCheck = checkAndMarkResend(email);
+    if (!resendCheck.success) return handleServerError(resendCheck.message, undefined, 'requestEmailVerification');
 
-  // Generate & cache OTP
-  const otp = generateAndStoreOtp(email);
+    const otp = generateAndStoreOtp(email).data;
+    const emailRes = await sendVerificationEmail({
+      to: email,
+      otp,
+      sub: 'Verify Your Email',
+      username: email
+    });
 
-  // Send via Resend (use your UserVerificationEmail template)
-  const emailRes = await sendVerificationEmail({
-    to: email,
-    otp,
-    sub: 'Verify Your Email',
-    username: email
-  });
+    if (!emailRes.success) return handleServerError('Failed to send verification email', emailRes.error, 'requestEmailVerification');
 
-  if (!emailRes.success) {
-    return { success: false, message: emailRes.error };
+    return createSuccessResponse('Verification email sent successfully');
+  } catch (err) {
+    return handleServerError('Unexpected server error', err, 'requestEmailVerification');
   }
-
-  return { success: true };
 }
 
 // Step 2: Verify OTP and mark email as verified
 export async function verifyEmailWithOtp(email: string, otp: string) {
-  // Verify OTP (same logic as password reset)
-  const check = verifyOtp(email, otp);
-  if (!check.ok) return { success: false, message: check.error };
-
   try {
-    // Look up user by email
+    const check = verifyOtp(email, otp);
+    if (!check.success) return handleServerError('Invalid or expired OTP', undefined, 'verifyEmailWithOtp');
+
     const userList = await users.list([Query.equal('email', email)]);
-    if (userList.users.length === 0) {
-      return { success: false, message: 'User not found' };
-    }
+    if (userList.users.length === 0) return handleServerError('User not found', undefined, 'verifyEmailWithOtp');
 
     const userId = userList.users[0].$id;
-
-    // Verify email using your working code
     await users.updateEmailVerification(userId, true);
 
-    return { success: true };
-  } catch (err: any) {
-    return { success: false, message: err.message || 'Failed to verify email' };
+    return createSuccessResponse('Email verified successfully');
+  } catch (err) {
+    return handleServerError('Failed to verify email', err, 'verifyEmailWithOtp');
   }
 }

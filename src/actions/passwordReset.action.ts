@@ -1,92 +1,76 @@
-// actions/passwordReset.ts
 'use server';
 
 import { generateAndStoreOtp, checkAndMarkResend, verifyOtp, attemptsCache, otpCache } from '@/lib/otpCache';
 import { sendForgotPasswordEmail } from '@/lib/emailService';
 import { users } from '@/models/server/config';
 import { Query } from 'node-appwrite';
-// import { adminUsers } from '@/lib/serverConfig';
+import { handleServerError } from '@/utils/errorHandler';
+import { createSuccessResponse } from '@/utils/responseHandler';
 
-interface RequestResult {
-  success: boolean;
-  message?: string;
-}
-interface VerifyResult {
-  success: boolean;
-  message?: string;
-}
-
-/**
- * Step 1: Request a new OTP
- */
-export async function requestPasswordReset(email: string): Promise<RequestResult> {
-  // Throttle resends
-  const resendCheck = checkAndMarkResend(email);
-  if (!resendCheck.ok) return { success: false, message: resendCheck.error };
-
-  // Generate & cache OTP
-  const otp = generateAndStoreOtp(email);
-
-  // Send via Resend
-  const emailRes = await sendForgotPasswordEmail({ to: email, otp, sub: 'Your Reset OTP', username: email });
-  if (!emailRes.success) {
-    return { success: false, message: emailRes.error };
-  }
-
-  return { success: true };
-}
-
-/**
- * Step 2: Verify the OTP and update password
- */
-export async function verifyAndResetPassword(email: string, otp: string, newPassword: string): Promise<VerifyResult> {
-  // Verify OTP & enforce lockouts
-  const check = verifyOtp(email, otp);
-  if (!check.ok) return { success: false, message: check.error };
-
-  //
-
-  // Update user password via Admin API -> Server config node-appwrite
+// Step 1: Request a new OTP
+export async function requestPasswordReset(email: string) {
   try {
-    // Look up user by email for their userID
-    const userList = await users.list([Query.equal('email', email)]);
+    const resendCheck = checkAndMarkResend(email);
+    if (!resendCheck.success) return handleServerError(resendCheck.message, undefined, 'requestPasswordReset');
 
-    if (userList.users.length === 0) {
-      return { success: false, message: 'User not found' };
-    }
+    const otp = generateAndStoreOtp(email).data;
+    const emailRes = await sendForgotPasswordEmail({
+      to: email,
+      otp,
+      sub: 'Your Reset OTP',
+      username: email
+    });
+
+    if (!emailRes.success) return handleServerError('Failed to send reset OTP email', emailRes.error, 'requestPasswordReset');
+
+    return createSuccessResponse('Reset OTP sent successfully');
+  } catch (err) {
+    return handleServerError('Unexpected error during password reset request', err, 'requestPasswordReset');
+  }
+}
+
+// Step 2: Verify the OTP and update password
+export async function verifyAndResetPassword(email: string, otp: string, newPassword: string) {
+  try {
+    const check = verifyOtp(email, otp);
+    if (!check.success) return handleServerError('Invalid or expired OTP', undefined, 'verifyAndResetPassword');
+
+    const userList = await users.list([Query.equal('email', email)]);
+    if (userList.users.length === 0) return handleServerError('User not found', undefined, 'verifyAndResetPassword');
 
     const userId = userList.users[0].$id;
-
-    // update the password
     await users.updatePassword(userId, newPassword);
-    return { success: true };
-  } catch (err: any) {
-    return { success: false, message: err.message || 'Failed to update password' };
+
+    return createSuccessResponse('Password reset successfully');
+  } catch (err) {
+    return handleServerError('Failed to reset password', err, 'verifyAndResetPassword');
   }
 }
 
-// Add a separate OTP verification function that doesn't delete the OTP
-export async function verifyOtpOnly(email: string, otp: string): Promise<{ success: boolean; message?: string }> {
-  const now = Date.now();
-  const attempt = attemptsCache.get(email) ?? { count: 0, blockedUntil: 0 };
+// Step 3: Verify OTP only (without deleting it)
+export async function verifyOtpOnly(email: string, otp: string) {
+  try {
+    const now = Date.now();
+    const attempt = attemptsCache.get(email) ?? { count: 0, blockedUntil: 0 };
 
-  // Check lockout
-  if (attempt.blockedUntil > now) {
-    const wait = Math.ceil((attempt.blockedUntil - now) / 1000);
-    return { success: false, message: `Too many attempts. Try again in ${wait}s.` };
-  }
-
-  const rec = otpCache.get(email);
-  if (!rec || rec.expires < now || rec.otp !== otp) {
-    attempt.count++;
-    if (attempt.count >= 3) {
-      attempt.blockedUntil = now + 2 * 60_000;
-      attempt.count = 0;
+    if (attempt.blockedUntil > now) {
+      const wait = Math.ceil((attempt.blockedUntil - now) / 1000);
+      return handleServerError(`Too many attempts. Try again in ${wait}s.`, undefined, 'verifyOtpOnly');
     }
-    attemptsCache.set(email, attempt);
-    return { success: false, message: 'Invalid or expired OTP.' };
-  }
 
-  // DON'T delete the OTP here - just verify it exists and is valid
-  return { success: true };
+    const rec = otpCache.get(email);
+    if (!rec || rec.expires < now || rec.otp !== otp) {
+      attempt.count++;
+      if (attempt.count >= 3) {
+        attempt.blockedUntil = now + 2 * 60_000;
+        attempt.count = 0;
+      }
+      attemptsCache.set(email, attempt);
+      return handleServerError('Invalid or expired OTP', undefined, 'verifyOtpOnly');
+    }
+
+    return createSuccessResponse('OTP verified successfully');
+  } catch (err) {
+    return handleServerError('Error verifying OTP', err, 'verifyOtpOnly');
+  }
 }
