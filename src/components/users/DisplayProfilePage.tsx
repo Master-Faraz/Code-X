@@ -210,7 +210,7 @@ const DisplayProfilePage: React.FC<DisplayProfilePageProps> = ({ prefs }) => {
         }
     }
 
-    // Setting the image value in Form
+    // Setting the image value in Form and user document
     const uploadProfileImage = async () => {
         if (!imageFile) return null
         setUploadingImage(true)
@@ -317,16 +317,18 @@ const DisplayProfilePage: React.FC<DisplayProfilePageProps> = ({ prefs }) => {
     const onSubmit = async (values: ProfileFormValues) => {
         setLoading(true)
         try {
-            let profilePicId = values.profile_pic || ''
-            if (imageFile) {
-                profilePicId = await uploadProfileImage() || ''
-            }
+
 
             setUserData((prev: any) => ({
                 ...prev,
                 ...values,
-                profile_pic: profilePicId
             }))
+
+            const response = await UpdateUserDocument({ id: prefs.id, userData: { ...values } })
+            if (response.success) { toast.success(response.message) }
+
+
+
             setIsEditing(false)
             toast.success('Profile updated successfully!')
         } catch {
@@ -644,7 +646,7 @@ const DisplayProfilePage: React.FC<DisplayProfilePageProps> = ({ prefs }) => {
                                                     {[
                                                         { name: 'fname', label: 'First Name', fieldType: FormFieldType.INPUT, iconAlt: 'user' },
                                                         { name: 'lname', label: 'Last Name', fieldType: FormFieldType.INPUT, iconAlt: 'user' },
-                                                        { name: 'email', label: 'Email', fieldType: FormFieldType.INPUT, iconAlt: 'mail' },
+                                                        { name: 'email', label: 'Email', fieldType: FormFieldType.INPUT, iconAlt: 'mail', disabled: true },
                                                         { name: 'phone', label: 'Phone', fieldType: FormFieldType.INPUT, iconAlt: 'phone' },
                                                         { name: 'dob', label: 'Date of Birth', fieldType: FormFieldType.DATE_Picker },
                                                         { name: 'gender', label: 'Gender', fieldType: FormFieldType.SELECT }
@@ -657,6 +659,7 @@ const DisplayProfilePage: React.FC<DisplayProfilePageProps> = ({ prefs }) => {
                                                                 label={field.label}
                                                                 placeholder={field.label}
                                                                 iconAlt={field.iconAlt}
+                                                                disabled={field.disabled}
                                                             >
                                                                 {field.name === 'gender' && (
                                                                     <>
@@ -671,14 +674,17 @@ const DisplayProfilePage: React.FC<DisplayProfilePageProps> = ({ prefs }) => {
                                                 </fieldset>
 
 
-                                                <footer className="flex gap-3 pt-6 border-t border-slate-200">
+                                                <footer className="flex gap-3 pt-6 border-t ">
                                                     <Button
                                                         type="submit"
-                                                        disabled={loading || uploadingImage}  // Add uploadingImage here
+                                                        disabled={loading || uploadingImage}
+
+
 
                                                     >
                                                         <Save className="w-4 h-4 mr-2" />
                                                         {loading || uploadingImage ? 'Saving...' : 'Save Changes'}
+
                                                     </Button>
 
                                                     <Button type="button" variant="outline" onClick={handleCancel}>

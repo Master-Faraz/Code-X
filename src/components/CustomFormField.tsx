@@ -88,6 +88,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
               {...field}
               className="text-sm leading-[18px] font-medium focus-visible:ring-0 focus-visible:ring-offset-0 border-none text-card-foreground placeholder:text-muted-foreground"
               id={props.name}
+              disabled={props.disabled}
             />
           </FormControl>
         </div>
