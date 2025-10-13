@@ -27,6 +27,12 @@ const uploadImage = async (payload: UploadImagePayload) => {
   }
 
   try {
+    // Delete old image if ID provided
+    if (payload.oldimageID) {
+      const destroyResult = await cloudinary.uploader.destroy(payload.oldimageID);
+      if (destroyResult.result != 'ok') throw new HttpError(500, "Can't delete the old image");
+    }
+
     // Convert file to buffer
     const arrayBuffer = await payload.file.arrayBuffer();
     const buffer = new Uint8Array(arrayBuffer);
@@ -63,7 +69,7 @@ const uploadImage = async (payload: UploadImagePayload) => {
         .end(buffer);
     });
 
-    return response;
+    return response.public_id;
   } catch (error) {
     console.error('Image Server error :: ', error);
     throw error;

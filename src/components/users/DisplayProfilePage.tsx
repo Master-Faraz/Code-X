@@ -42,6 +42,7 @@ import uploadImage from '@/actions/imageUploader.action'
 import { ImageSizeKey } from '@/constants/imageUploaderConstants'
 import { HttpError } from '@/utils/httpError'
 import { Input } from '../ui/input'
+import { UpdateUserDocument } from '@/actions/createUserDocument.action'
 
 
 export interface DisplayProfilePageProps {
@@ -93,6 +94,7 @@ const DisplayProfilePage: React.FC<DisplayProfilePageProps> = ({ prefs }) => {
     const [imageFile, setImageFile] = useState<File | null>(null)
     const [imagePreview, setImagePreview] = useState<string | null>(null)
     const [uploadingImage, setUploadingImage] = useState(false)
+
 
 
 
@@ -218,15 +220,35 @@ const DisplayProfilePage: React.FC<DisplayProfilePageProps> = ({ prefs }) => {
                 sizeKeys: [ImageSizeKey.CARD],
                 oldimageID: userData?.profile_pic
             })
-            if (result?.public_id) {
-                form.setValue('profile_pic', result.public_id)
+
+            console.log(result)
+
+            if (result) {
+                form.setValue('profile_pic', result)
                 toast.success('Profile picture uploaded successfully')
-                return result.public_id
+                // return result
+
+
+
+                const response = await UpdateUserDocument({ id: prefs.id, userData: { profile_pic: result } })
+
+                if (response.success) { toast.success(response.message) }
+
+                window.location.reload();
+
+
+
+
             }
-        } catch (err: any) {
-            if (err instanceof HttpError) {
-                toast.error(`Upload failed: ${err.message}`)
-            } else {
+        } catch (error: any) {
+            if (error instanceof HttpError) {
+                toast.error(`Upload failed: ${error.message}`)
+                console.error(error)
+            }
+            else if (error.context === "UpdateUserDocument") {
+                toast.error(error?.message! || "Failed to update the user")
+            }
+            else {
                 toast.error('Failed to upload profile picture')
             }
         } finally {
@@ -553,8 +575,11 @@ const DisplayProfilePage: React.FC<DisplayProfilePageProps> = ({ prefs }) => {
                                                                 <DialogClose asChild>
                                                                     <Button variant="outline" onClick={handleCancel}>Cancel</Button>
                                                                 </DialogClose>
+                                                                {/* <DialogClose asChild> */}
+                                                                <Button onClick={uploadProfileImage}>{uploadingImage ? "Saving Changes" : "Save changes"}</Button>
+                                                                {/* </DialogClose> */}
 
-                                                                <Button >Save changes</Button>
+
                                                             </DialogFooter>
                                                         </DialogContent>
                                                     </Dialog>
@@ -650,7 +675,7 @@ const DisplayProfilePage: React.FC<DisplayProfilePageProps> = ({ prefs }) => {
                                                     <Button
                                                         type="submit"
                                                         disabled={loading || uploadingImage}  // Add uploadingImage here
-                                                        className="bg-slate-900 hover:bg-slate-800"
+
                                                     >
                                                         <Save className="w-4 h-4 mr-2" />
                                                         {loading || uploadingImage ? 'Saving...' : 'Save Changes'}

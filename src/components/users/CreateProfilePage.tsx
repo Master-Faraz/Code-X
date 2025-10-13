@@ -18,7 +18,7 @@ import uploadImage from '@/actions/imageUploader.action'
 import { CldImage } from 'next-cloudinary'
 import { ImageSizeKey } from '@/constants/imageUploaderConstants'
 import { HttpError } from '@/utils/httpError'
-import CreateUserDocument from '@/actions/createUserDocument.action'
+import { CreateUserDocument } from '@/actions/createUserDocument.action'
 import { updateUserPrefs } from '@/actions/userPrefs.action'
 import { useRouter } from 'next/navigation'
 import { UserPrefsType } from '@/app/users/profile/page'
@@ -112,10 +112,10 @@ const ProfileCompletionPage: React.FC<ProfileCompletionPageProps> = ({ setPrefs 
                 sizeKeys: [ImageSizeKey.CARD]
             })
 
-            if (result?.public_id) {
-                form.setValue('profile_pic', result.public_id)
+            if (result) {
+                form.setValue('profile_pic', result)
                 toast.success('Profile picture uploaded successfully')
-                return result.public_id
+                return result
             }
         } catch (err: any) {
             if (err instanceof HttpError) {

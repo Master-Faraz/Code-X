@@ -20,8 +20,20 @@ interface UserDataTypes {
   plan_start_date?: string | null;
   plan_end_date?: string | null;
 }
+interface UpdateUserDataTypes {
+  fname?: string;
+  lname?: string;
+  email?: string;
+  phone?: string;
+  profile_pic?: string;
+  dob?: Date | null;
+  gender?: 'Male' | 'Female' | 'Others';
+  plan_type?: 'Free' | 'Premium' | 'Professional' | string;
+  plan_start_date?: string | null;
+  plan_end_date?: string | null;
+}
 
-export default async function CreateUserDocument(userData: UserDataTypes) {
+const CreateUserDocument = async (userData: UserDataTypes) => {
   try {
     //  Check if a user document with same UID exists
     const existing = await databases.listDocuments(db, userCollection, [Query.equal('uid', userData.uid)]);
@@ -46,4 +58,17 @@ export default async function CreateUserDocument(userData: UserDataTypes) {
   } catch (error) {
     handleServerError('Error while creating user document', error, 'CreateUserDocument');
   }
-}
+};
+
+const UpdateUserDocument = async ({ id, userData }: { userData: UpdateUserDataTypes; id: string }) => {
+  try {
+    // partially update the user document
+    const updated = await databases.updateDocument(db, userCollection, id, { ...userData });
+
+    return createSuccessResponse('User updated successfully', updated, 'UpdateUserDocument', 200);
+  } catch (error) {
+    handleServerError('Error while Updating user document', error, 'UpdateUserDocument');
+  }
+};
+
+export { CreateUserDocument, UpdateUserDocument };
