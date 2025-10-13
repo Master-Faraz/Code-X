@@ -5,6 +5,7 @@ import CreateProfilePage from "@/components/users/CreateProfilePage";
 import React, { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth";
 import getUserPrefs from "@/utils/getUserPrefs";
+import ProfilePageSkeleton from "@/components/ProfileSkeletonPage";
 
 export interface UserPrefsType {
     id: string;
@@ -33,11 +34,7 @@ const Page = () => {
     }, [user]);
 
     if (!prefs) {
-        return (
-            <div className="flex flex-col items-center justify-center">
-                <h1>Loading...</h1>
-            </div>
-        );
+        return
     }
 
     return (

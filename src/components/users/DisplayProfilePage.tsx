@@ -43,6 +43,7 @@ import { ImageSizeKey } from '@/constants/imageUploaderConstants'
 import { HttpError } from '@/utils/httpError'
 import { Input } from '../ui/input'
 import { UpdateUserDocument } from '@/actions/createUserDocument.action'
+import ProfilePageSkeleton from '../ProfileSkeletonPage'
 
 
 export interface DisplayProfilePageProps {
@@ -341,7 +342,7 @@ const DisplayProfilePage: React.FC<DisplayProfilePageProps> = ({ prefs }) => {
 
 
     const formatDate = (iso: string) => {
-        if (!iso) return '—';
+        if (!iso) return 'â€”';
         const d = new Date(iso);
         if (isNaN(d.getTime())) return iso;
         return d.toLocaleDateString('en-US', {
@@ -355,9 +356,7 @@ const DisplayProfilePage: React.FC<DisplayProfilePageProps> = ({ prefs }) => {
     const getInitials = (f: string, l: string) => `${(f || '?')[0]}${(l || '?')[0]}`.toUpperCase()
 
     if (!userData) return (
-        <div className='flex items-center justify-center'>
-            <h1>Loading</h1>
-        </div>
+        <ProfilePageSkeleton />
     )
 
     return (
