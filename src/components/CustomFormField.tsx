@@ -23,6 +23,9 @@ import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { Select, SelectContent, SelectTrigger, SelectValue } from './ui/select';
 
+
+// TODO add fields like select when required 
+
 export enum FormFieldType {
   INPUT = 'input',
   TEXTAREA = 'textarea',
@@ -85,6 +88,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
           <FormControl>
             <Input
               placeholder={props.placeholder}
+              value={field.value ?? ''}
               {...field}
               className="text-sm leading-[18px] font-medium focus-visible:ring-0 focus-visible:ring-offset-0 border-none text-card-foreground placeholder:text-muted-foreground"
               id={props.name}
@@ -153,6 +157,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
             id={props.name}
             placeholder={props.placeholder}
             {...field}
+            value={field.value ?? ''}
             className="border-input focus-visible:ring-0 focus-visible:ring-offset-0 h-[100px] text-card-foreground placeholder:text-muted-foreground"
             disabled={props.disabled}
           />
@@ -208,6 +213,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
                 date > new Date() || date < new Date("1900-01-01")
               }
               captionLayout="dropdown"
+
             />
           </PopoverContent>
         </Popover>
@@ -216,7 +222,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
     case FormFieldType.SELECT:
       return (
         <FormControl>
-          <Select onValueChange={field.onChange} defaultValue={field.value}>
+          <Select onValueChange={field.onChange} defaultValue={field.value ?? ''}>
             <FormControl>
               <SelectTrigger className="shad-select-trigger">
                 <SelectValue placeholder={props.placeholder} />
