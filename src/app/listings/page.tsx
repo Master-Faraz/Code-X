@@ -14,6 +14,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Info, Upload, X } from "lucide-react";
 import CustomFormField, { FormFieldType } from "@/components/CustomFormField";
 import { cn } from "@/lib/utils";
+import { Progress } from "@/components/ui/progress";
+import { motion, AnimatePresence } from "framer-motion";
+
+
 
 // Validation schema
 const listingSchema = z.object({
@@ -330,12 +334,17 @@ const CreateListingPage = () => {
     };
 
     return (
-        <main className="min-h-screen w-full flex flex-col items-center justify-center p-6">
+        <main className="mt-16 min-h-screen w-full flex flex-col items-center justify-center p-6">
             <div className="w-full max-w-7xl mb-6">
                 <div className="flex items-center justify-between">
                     <h1 className="text-3xl font-bold">Create Room Listing</h1>
                     <Button variant="outline">Save and Close</Button>
                 </div>
+                {/* Progress Bar */}
+                <Progress
+                    value={((steps.indexOf(currentSteps) + 1) / steps.length) * 100}
+                    className="my-6 h-2 bg-muted transition-all duration-500 ease-in-out"
+                />
             </div>
 
             <div className="max-w-7xl w-full flex gap-6 bg-card rounded-lg shadow-lg overflow-hidden min-h-[600px]">
@@ -346,7 +355,18 @@ const CreateListingPage = () => {
                             className="flex flex-col justify-between h-full space-y-6"
                         >
                             {/* Step Content */}
-                            <div>{renderStepContent()}</div>
+                            {/* Animated Step Content */}
+                            <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={currentSteps}
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.35, ease: "easeInOut" }}
+                                >
+                                    {renderStepContent()}
+                                </motion.div>
+                            </AnimatePresence>
 
                             {/* Navigation Buttons */}
                             <div className="flex justify-between pt-6 border-t">
