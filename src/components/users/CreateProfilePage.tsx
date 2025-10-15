@@ -23,6 +23,15 @@ import { updateUserPrefs } from '@/actions/userPrefs.action'
 import { useRouter } from 'next/navigation'
 import { UserPrefsType } from '@/app/users/profile/page'
 
+
+// TODO : Refactor the user collection based on the pricing and user  collection
+
+
+
+
+
+
+
 // Combined schema - mapping to your user collection structure
 const formSchema = z.object({
     email: z.string().email('Please enter a valid email.'),
@@ -33,7 +42,11 @@ const formSchema = z.object({
     dob: z.date().nullable(),
     gender: z.enum(['Male', 'Female', 'Others']), // Matching your enum values
     profile_pic: z.string().optional(), // This will store Cloudinary public_id
-    isEmailVerified: z.boolean()
+    isEmailVerified: z.boolean(),
+
+    user_type: z.enum(["room_seeker", "room_sharer", "property_owner"]),
+    is_finding_room: z.boolean()
+
 })
 
 interface ProfileCompletionPageProps {
@@ -41,7 +54,7 @@ interface ProfileCompletionPageProps {
 }
 
 
-const ProfileCompletionPage: React.FC<ProfileCompletionPageProps> = ({ setPrefs }) => {
+const CreateProfilePage: React.FC<ProfileCompletionPageProps> = ({ setPrefs }) => {
     const [step, setStep] = useState(1)
     const [loading, setLoading] = useState(false)
     const [otpSent, setOtpSent] = useState(false)
@@ -66,7 +79,10 @@ const ProfileCompletionPage: React.FC<ProfileCompletionPageProps> = ({ setPrefs 
             gender: undefined,
             dob: null,
             profile_pic: '',
-            isEmailVerified: false
+            isEmailVerified: false,
+
+            user_type: undefined,
+            is_finding_room: false
         }
     })
 
@@ -242,8 +258,6 @@ const ProfileCompletionPage: React.FC<ProfileCompletionPageProps> = ({ setPrefs 
                 return
             }
 
-            // No image upload here - just move to next step
-            // await new Promise(resolve => setTimeout(resolve, 800)) // Simulate validation
             toast.success('Basic information saved')
             setStep(3)
         } catch (error: any) {
@@ -550,6 +564,24 @@ const ProfileCompletionPage: React.FC<ProfileCompletionPageProps> = ({ setPrefs 
                                             <SelectItem value="Others">Others</SelectItem>
                                         </CustomFormField>
 
+                                        {/* Gender - Full width */}
+                                        <CustomFormField
+                                            fieldType={FormFieldType.SELECT}
+                                            control={form.control}
+                                            name="user_type"
+                                            label="User Type"
+                                            placeholder="Select user type"
+                                            className="w-full"
+                                        >
+                                            <SelectItem value="room_seeker">Room Seeker</SelectItem>
+                                            <SelectItem value="room_sharer">Room Sharer</SelectItem>
+                                            <SelectItem value="property_owner">Property Owner</SelectItem>
+                                        </CustomFormField>
+
+                                        {/* {form.getValues('user_type') === "room_seeker" ?
+                                            
+                                    } */}
+
 
                                     </div>
                                 )}
@@ -629,4 +661,4 @@ const ProfileCompletionPage: React.FC<ProfileCompletionPageProps> = ({ setPrefs 
     )
 }
 
-export default ProfileCompletionPage
+export default CreateProfilePage

@@ -25,7 +25,9 @@ export default async function createUserCollection() {
 
     databases.createEnumAttribute(db, userCollection, 'plan_type', ['Free', 'Premium', 'Professional'], false),
     databases.createDatetimeAttribute(db, userCollection, 'plan_start_date', false),
-    databases.createDatetimeAttribute(db, userCollection, 'plan_end_date', false)
+    databases.createDatetimeAttribute(db, userCollection, 'plan_end_date', false),
+    databases.createEnumAttribute(db, userCollection, 'user_type', ['room_seeker', 'room_sharer', 'property_owner'], true),
+    databases.createBooleanAttribute(db, userCollection, 'is_finding_room', false, false)
   ]);
 
   console.log('User attributes created successfully');
@@ -39,6 +41,8 @@ export default async function createUserCollection() {
 
     databases.createIndex(db, userCollection, 'idx_plan_type', IndexType.Key, ['plan_type']),
     databases.createIndex(db, userCollection, 'idx_plan_end', IndexType.Key, ['plan_end_date']),
-    databases.createIndex(db, userCollection, 'idx_is_completed', IndexType.Key, ['is_completed'])
+    databases.createIndex(db, userCollection, 'idx_is_completed', IndexType.Key, ['is_completed']),
+    databases.createIndex(db, userCollection, 'idx_user_type', IndexType.Key, ['user_type']),
+    databases.createIndex(db, userCollection, 'idx_is_finding_room', IndexType.Key, ['is_finding_room'])
   ]);
 }
