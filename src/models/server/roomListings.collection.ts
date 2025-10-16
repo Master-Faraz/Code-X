@@ -18,15 +18,13 @@ export default async function createRoomListingCollection() {
     databases.createStringAttribute(db, listingCollection, 'image_url_2', 1000, false),
     databases.createStringAttribute(db, listingCollection, 'image_url_3', 1000, false),
     databases.createStringAttribute(db, listingCollection, 'image_url_4', 1000, false),
-    databases.createStringAttribute(db, listingCollection, 'id', 36, true),
+    // databases.createStringAttribute(db, listingCollection, 'id', 36, true),
     databases.createStringAttribute(db, listingCollection, 'title', 150, true),
     databases.createStringAttribute(db, listingCollection, 'description', 2000, true),
     databases.createStringAttribute(db, listingCollection, 'created_by', 36, true), //  user id for searching
 
     // Metadata
     databases.createBooleanAttribute(db, listingCollection, 'visibility', false, true),
-    databases.createDatetimeAttribute(db, listingCollection, 'created_at', true),
-    databases.createDatetimeAttribute(db, listingCollection, 'updated_at', false),
     databases.createDatetimeAttribute(db, listingCollection, 'auto_deleted_at', true),
 
     // Rules & Terms
@@ -62,7 +60,7 @@ export default async function createRoomListingCollection() {
     databases.createEnumAttribute(db, listingCollection, 'furnishing', ['Furnished', 'Semi-Furnished', 'Unfurnished'], false),
     databases.createStringAttribute(db, listingCollection, 'room_size', 30, false),
     databases.createEnumAttribute(db, listingCollection, 'bathroom_type', ['Private', 'Shared', 'Attached'], false),
-    databases.createIntegerAttribute(db, listingCollection, 'has_balcony', false),
+    databases.createBooleanAttribute(db, listingCollection, 'has_balcony', false, false),
     databases.createEnumAttribute(db, listingCollection, 'kitchen_access', ['Yes', 'No', 'Shared'], false),
 
     // Amenities
@@ -114,11 +112,11 @@ export default async function createRoomListingCollection() {
 
   // Indexes
   await Promise.all([
-    databases.createIndex(db, listingCollection, 'idx_id', IndexType.Unique, ['id'], ['asc']),
+    // databases.createIndex(db, listingCollection, 'idx_id', IndexType.Unique, ['id'], ['asc']),
     databases.createIndex(db, listingCollection, 'idx_city', IndexType.Key, ['city']),
     databases.createIndex(db, listingCollection, 'idx_state', IndexType.Key, ['state']),
     databases.createIndex(db, listingCollection, 'idx_visibility', IndexType.Key, ['visibility']),
-    databases.createIndex(db, listingCollection, 'idx_created_at', IndexType.Key, ['created_at'], ['asc']),
+    databases.createIndex(db, listingCollection, 'idx_created_at', IndexType.Key, ['$createdAt'], ['asc']),
 
     databases.createIndex(db, listingCollection, 'idx_room_type', IndexType.Key, ['room_type']),
     databases.createIndex(db, listingCollection, 'idx_city_rent', IndexType.Key, ['city'], ['asc']),

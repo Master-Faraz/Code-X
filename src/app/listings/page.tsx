@@ -1,4 +1,3 @@
-// Extended Create Listing Page with amenities, gender preferences, and visit availability
 "use client";
 
 import { useState } from "react";
@@ -7,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,6 +15,9 @@ import CustomFormField, { FormFieldType } from "@/components/CustomFormField";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { motion, AnimatePresence } from "framer-motion";
+import { SelectItem } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 
 
@@ -41,7 +43,7 @@ const listingSchema = z.object({
     contact_phone: z.string().min(10, "Phone is required"),
     contact_email: z.string().email("Invalid email"),
     terms: z.string().optional(),
-    gender_preferences: z.array(z.string()).optional(),
+    preferred_gender: z.enum(["Male", "Female", "Any", "Others"]),
     amenities: z.record(z.boolean()).optional(),
     visit_available: z.boolean().optional(),
     visiting_hours: z.string().optional(),
@@ -49,6 +51,7 @@ const listingSchema = z.object({
 
 const CreateListingPage = () => {
     const steps = ["Basics", "Details", "Roommates", "Images", "Rules"];
+
     const [currentSteps, setCurrentSteps] = useState("Basics");
     const [images, setImages] = useState<File[]>([]);
     const [selectedGenders, setSelectedGenders] = useState<string[]>([]);
@@ -130,21 +133,35 @@ const CreateListingPage = () => {
             contact_name: "",
             contact_phone: "",
             contact_email: "",
-            gender_preferences: [],
-            amenities: {},
+            preferred_gender: "Any",
             visiting_hours: "",
+            amenities: {
+                wifi: false,
+                air_conditioning: false,
+                geyser: false,
+                refrigerator: false,
+                washing_machine: false,
+                wardrobe: false,
+                ro_purifier: false,
+                gas_pipeline: false,
+                parking_2_wheeler: false,
+                parking_4_wheeler: false,
+                power_backup: false,
+                elevator: false,
+                housekeeping: false,
+                pets_allowed: false,
+                smoking_allowed_inside: false,
+                party_friendly: false,
+                guest_allowed: false,
+                fire_extinguisher: false,
+                fire_alarm: false,
+                first_aid_kit: false,
+                security_guard: false,
+                cctv: false,
+                wheelchair_accessible: false,
+            }
         },
     });
-
-    const toggleGender = (gender: string) => {
-        setSelectedGenders((prev) =>
-            prev.includes(gender) ? prev.filter((g) => g !== gender) : [...prev, gender]
-        );
-    };
-
-    const toggleAmenity = (id: string) => {
-        setAmenities((prev) => ({ ...prev, [id]: !prev[id as keyof typeof prev] }));
-    };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -160,7 +177,7 @@ const CreateListingPage = () => {
     const onSubmit = async (data: z.infer<typeof listingSchema>) => {
         const payload = {
             ...data,
-            gender_preferences: selectedGenders,
+            preferred_gender: selectedGenders,
             amenities,
         };
         toast.success("Listing submitted successfully!");
@@ -189,35 +206,49 @@ const CreateListingPage = () => {
 
     const renderDetails = () => (
         <div className="space-y-6">
-            <CustomFormField fieldType={FormFieldType.SELECT} control={form.control} name="room_type" label="Room Type" placeholder="Select room type">
-                <option value="Private Room">Private Room</option>
-                <option value="Shared">Shared</option>
-                <option value="PG">PG</option>
-                <option value="Studio">Studio</option>
+            <CustomFormField
+                fieldType={FormFieldType.SELECT}
+                control={form.control}
+                name="room_type"
+                label="Room Type"
+                placeholder="Select room type"
+            >
+                <SelectItem value="Private Room">Private Room</SelectItem>
+                <SelectItem value="Shared">Shared</SelectItem>
+                <SelectItem value="PG">PG</SelectItem>
+                <SelectItem value="Studio">Studio</SelectItem>
             </CustomFormField>
-            <CustomFormField fieldType={FormFieldType.TEXTAREA} control={form.control} name="description" label="Description" placeholder="Describe your listing..." />
+
+            <CustomFormField
+                fieldType={FormFieldType.TEXTAREA}
+                control={form.control}
+                name="description"
+                label="Description"
+                placeholder="Describe your listing..."
+            />
 
             <div>
                 <h3 className="text-lg font-semibold mb-4">Amenities</h3>
+
+
+
+
                 {Object.entries(amenitiesConfig).map(([category, items]) => (
                     <div key={category} className="mb-6">
                         <h4 className="font-semibold mb-3 text-base">{category}</h4>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            {items.map((a) => (
-                                <button
-                                    key={a.id}
-                                    type="button"
-                                    onClick={() => toggleAmenity(a.id)}
-                                    className={cn(
-                                        "flex items-center gap-2 p-3 rounded-lg border-2 transition-all",
-                                        amenities[a.id as keyof typeof amenities]
-                                            ? "border-blue-600 bg-blue-50"
-                                            : "border-gray-200 hover:border-gray-300"
-                                    )}
-                                >
-                                    <span className="text-xl">{a.icon}</span>
-                                    <span className="text-sm text-left flex-1">{a.label}</span>
-                                </button>
+                            {items.map((BasicAmenities) => (
+
+                                <CustomFormField
+                                    key={BasicAmenities.id}
+                                    fieldType={FormFieldType.CHECKBOX_HIDDEN}
+                                    control={form.control}
+                                    name={`amenities.${BasicAmenities.id}`}
+                                    label={BasicAmenities.label}
+                                    iconSrc={BasicAmenities.icon}
+
+                                />
+
                             ))}
                         </div>
                     </div>
@@ -226,6 +257,8 @@ const CreateListingPage = () => {
         </div>
     );
 
+
+
     const renderRoommates = () => (
         <div className="space-y-6">
             <div>
@@ -233,27 +266,56 @@ const CreateListingPage = () => {
                     Tenant Preferences
                 </h2>
                 <div className="mb-4">
-                    <label className="text-base mb-3 block">Preferred Gender</label>
-                    <div className="flex gap-3 flex-wrap">
-                        {genderOptions.map((g) => (
-                            <Badge
-                                key={g}
-                                variant={selectedGenders.includes(g) ? "default" : "outline"}
-                                className="cursor-pointer px-4 py-2"
-                                onClick={() => toggleGender(g)}
-                            >
-                                {g}
-                            </Badge>
-                        ))}
-                    </div>
+                    <Label className="text-base mb-3 block">Preferred Gender</Label>
+                    <FormField
+                        control={form.control}
+                        name="preferred_gender"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormControl>
+                                    <RadioGroup
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                        className="flex gap-3 flex-wrap"
+                                    >
+                                        {genderOptions.map((gender) => (
+                                            <FormItem key={gender}>
+                                                <FormControl>
+                                                    <div className="relative">
+                                                        <RadioGroupItem
+                                                            value={gender}
+                                                            id={gender}
+                                                            className="sr-only peer"
+                                                        />
+                                                        <Label
+                                                            htmlFor={gender}
+                                                            className={cn(
+                                                                "cursor-pointer px-4 py-2 rounded-md border transition-all duration-200",
+                                                                "peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground peer-data-[state=checked]:border-primary",
+                                                                "hover:bg-accent hover:text-accent-foreground",
+                                                                field.value === gender && "bg-primary text-primary-foreground border-primary"
+                                                            )}
+                                                        >
+                                                            {gender}
+                                                        </Label>
+                                                    </div>
+                                                </FormControl>
+                                            </FormItem>
+                                        ))}
+                                    </RadioGroup>
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
                 </div>
             </div>
 
-            <div>
+            <div className="space-y-6">
                 <h2 className="text-lg font-semibold mb-4 text-muted-foreground uppercase">
                     Contact Information
                 </h2>
                 <CustomFormField fieldType={FormFieldType.INPUT} control={form.control} name="contact_name" label="Contact Name" placeholder="Your name" />
+
                 <div className="grid grid-cols-2 gap-4">
                     <CustomFormField fieldType={FormFieldType.INPUT} control={form.control} name="contact_phone" label="Contact Phone" placeholder="10-digit phone number" />
                     <CustomFormField fieldType={FormFieldType.INPUT} control={form.control} name="contact_email" label="Contact Email" placeholder="your@email.com" />
@@ -267,9 +329,9 @@ const CreateListingPage = () => {
                 <div className="space-y-4">
                     <div className="flex items-center space-x-2">
                         <Checkbox id="available_for_visits" />
-                        <label htmlFor="available_for_visits" className="text-base font-normal cursor-pointer">
+                        <Label htmlFor="available_for_visits" className="text-base font-normal cursor-pointer">
                             Available for property visits
-                        </label>
+                        </Label>
                     </div>
                     <CustomFormField fieldType={FormFieldType.INPUT} control={form.control} name="visiting_hours" label="Visiting Hours" placeholder="Mon-Fri 6-8 PM, Sat-Sun 10 AM-6 PM" />
                 </div>
@@ -280,11 +342,11 @@ const CreateListingPage = () => {
     const renderImages = () => (
         <div className="space-y-6">
             <input type="file" id="image-upload" multiple accept="image/*" onChange={handleImageUpload} className="hidden" />
-            <label htmlFor="image-upload">
+            <Label htmlFor="image-upload">
                 <Button variant="default" onClick={() => document.getElementById("image-upload")?.click()} disabled={images.length >= 4}>
                     <Upload className="mr-2 h-4 w-4" /> Upload Photos ({images.length}/4)
                 </Button>
-            </label>
+            </Label>
 
             {images.length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -309,9 +371,9 @@ const CreateListingPage = () => {
             <CustomFormField fieldType={FormFieldType.TEXTAREA} control={form.control} name="terms" label="House Rules & Terms" placeholder="Describe house rules..." />
             <div className="flex items-center space-x-2">
                 <Checkbox id="visibility" defaultChecked />
-                <label htmlFor="visibility" className="text-base font-normal cursor-pointer">
+                <Label htmlFor="visibility" className="text-base font-normal cursor-pointer">
                     Make this listing visible to public
-                </label>
+                </Label>
             </div>
         </div>
     );
@@ -369,7 +431,7 @@ const CreateListingPage = () => {
                             </AnimatePresence>
 
                             {/* Navigation Buttons */}
-                            <div className="flex justify-between pt-6 border-t">
+                            <div className="flex justify-between pt-6 border-t ">
                                 <Button
                                     type="button"
                                     variant="outline"
@@ -379,6 +441,7 @@ const CreateListingPage = () => {
                                             steps[steps.indexOf(currentSteps) - 1] || steps[0]
                                         )
                                     }
+                                    className="hover:cursor-pointer"
                                 >
                                     Back
                                 </Button>
@@ -392,6 +455,7 @@ const CreateListingPage = () => {
                                                 steps[steps.length - 1]
                                             )
                                         }
+                                        className="hover:cursor-pointer"
                                     >
                                         Next
                                     </Button>
@@ -415,7 +479,7 @@ const CreateListingPage = () => {
                                 type="button"
                                 onClick={() => setCurrentSteps(step)}
                                 className={cn(
-                                    "flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                                    "flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium transition-colors hover:cursor-pointer",
                                     currentSteps === step
                                         ? "bg-primary text-primary-foreground"
                                         : "hover:bg-muted"

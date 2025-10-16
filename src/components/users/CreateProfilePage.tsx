@@ -28,10 +28,6 @@ import { UserPrefsType } from '@/app/users/profile/page'
 
 
 
-
-
-
-
 // Combined schema - mapping to your user collection structure
 const formSchema = z.object({
     email: z.string().email('Please enter a valid email.'),

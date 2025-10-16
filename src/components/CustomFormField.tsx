@@ -22,6 +22,9 @@ import {
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { Select, SelectContent, SelectTrigger, SelectValue } from './ui/select';
+import { Checkbox } from './ui/checkbox';
+import { RadioGroup } from './ui/radio-group';
+import { Label } from './ui/label';
 
 
 // TODO add fields like select when required 
@@ -34,6 +37,9 @@ export enum FormFieldType {
   OTP = 'otp',
   DATE_Picker = "datePicker",
   SELECT = "select",
+  CHECKBOX = 'checkbox',
+  RADIO = "radio",
+  CHECKBOX_HIDDEN = "checkboxHidden"
 }
 
 interface CustomProps {
@@ -90,7 +96,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
               placeholder={props.placeholder}
               value={field.value ?? ''}
               {...field}
-              className="text-sm leading-[18px] font-medium focus-visible:ring-0 focus-visible:ring-offset-0 border-none text-card-foreground placeholder:text-muted-foreground"
+              className="text-sm leading-[18px] font-medium focus-visible:ring-0 focus-visible:ring-offset-0 border-none text-card-foreground placeholder:text-muted-foreground/70"
               id={props.name}
               disabled={props.disabled}
             />
@@ -235,6 +241,63 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
         </FormControl>
       );
 
+    case FormFieldType.CHECKBOX:
+      return (
+        <FormControl>
+          <Checkbox
+            checked={field.value}
+            onCheckedChange={field.onChange}
+          />
+        </FormControl>
+      );
+
+    case FormFieldType.CHECKBOX_HIDDEN:
+      return (
+        <FormItem
+          className={
+            cn(
+              "flex items-center justify-start p-3 rounded-lg border transition-all duration-150 cursor-pointer select-none",
+              field.value
+                ? "bg-primary text-primary-foreground border-primary"
+                : "border-border hover:bg-muted/50"
+            )
+          }
+        >
+          <FormControl>
+            <Checkbox
+              checked={!!field.value}
+              onCheckedChange={field.onChange}
+              className="hidden"
+              id={props.name}
+            />
+          </FormControl>
+
+          {/* Label or custom content */}
+          <Label
+            htmlFor={props.name}
+            className="flex items-center gap-2 w-full cursor-pointer"
+          >
+            <span className="text-xl">{props.iconSrc}</span>
+            <span className="text-sm font-medium">{props.label}</span>
+
+          </Label>
+        </FormItem >
+      );
+
+
+    case FormFieldType.RADIO:
+      return (
+        <FormControl>
+          <RadioGroup
+            value={field.value}
+            onValueChange={field.onChange}
+          >
+            {props.children}
+          </RadioGroup>
+        </FormControl>
+      );
+
+
     default:
       return null;
   }
@@ -243,17 +306,33 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
 const CustomFormField = (props: CustomProps) => {
   const { control, name, label, className } = props;
 
+  if (props.fieldType === FormFieldType.CHECKBOX_HIDDEN) {
+    return (
+      <FormField
+        control={control}
+        name={name}
+
+        render={({ field }) => (
+          <RenderInput field={field} props={props} />
+        )
+        }
+      />
+    )
+  }
+
   return (
     <FormField
       control={control}
       name={name}
+
       render={({ field }) => (
-        <FormItem className={`${className}`}>
+        < FormItem className={`${className}`}>
           {label && <FormLabel className="text-card-foreground">{label}</FormLabel>}
           <RenderInput field={field} props={props} />
           <FormMessage className="text-destructive" />
         </FormItem>
-      )}
+      )
+      }
     />
   );
 };
