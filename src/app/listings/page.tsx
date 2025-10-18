@@ -19,34 +19,81 @@ import { SelectItem } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
-
-
-// Validation schema
+// Validation schema matching Appwrite collection
 const listingSchema = z.object({
+    // Images, IDs and Title
     title: z.string().min(3, "Title is required"),
+    description: z.string().min(10, "Description is required"),
+
+    // Location
     address: z.string().min(5, "Address is required"),
     city: z.string().min(2, "City is required"),
     state: z.string().min(2, "State is required"),
-    pin_code: z.string().min(6, "PIN code must be 6 digits"),
-    rent: z.string(),
-    deposit: z.string(),
-    maintenance: z.string().optional(),
-    available_from: z.date().optional(),
-    description: z.string().optional(),
-    room_type: z.string().optional(),
-    furnishing: z.string().optional(),
-    bathroom_type: z.string().optional(),
-    kitchen_access: z.string().optional(),
+    pin_code: z.string().length(6, "PIN code must be 6 digits"),
+    country: z.string().default("India"),
+
+    // Pricing
+    monthly_rent: z.number().min(0, "Rent must be positive"),
+    security_deposit: z.number().min(0, "Deposit must be positive"),
+    maintenance_charge: z.number().optional(),
+    electricity_bill_included: z.boolean().default(false),
+    water_bill_included: z.boolean().default(false),
+
+    // Room Details
+    room_type: z.enum(["Private Room", "Shared", "PG", "Studio", "Entire Apartment"]),
+    available_from: z.date(),
+    furnishing: z.enum(["Furnished", "Semi-Furnished", "Unfurnished"]).optional(),
     room_size: z.string().optional(),
-    has_balcony: z.string().optional(),
+    bathroom_type: z.enum(["Private", "Shared", "Attached"]).optional(),
+    has_balcony: z.boolean().default(false),
+    kitchen_access: z.enum(["Yes", "No", "Shared"]).optional(),
+
+    // Contact & Verification
     contact_name: z.string().min(1, "Name is required"),
     contact_phone: z.string().min(10, "Phone is required"),
     contact_email: z.string().email("Invalid email"),
-    terms: z.string().optional(),
-    preferred_gender: z.enum(["Male", "Female", "Any", "Others"]),
-    amenities: z.record(z.boolean()).optional(),
-    visit_available: z.boolean().optional(),
+
+    // Availability
+    available_for_visits: z.boolean().default(false),
     visiting_hours: z.string().optional(),
+
+    // Rules & Terms
+    terms: z.string().optional(),
+    visibility: z.boolean().default(true),
+
+    // Amenities - Individual boolean fields
+    wifi: z.boolean().default(false),
+    air_conditioning: z.boolean().default(false),
+    geyser: z.boolean().default(false),
+    refrigerator: z.boolean().default(false),
+    washing_machine: z.boolean().default(false),
+    wardrobe: z.boolean().default(false),
+    ro_purifier: z.boolean().default(false),
+    gas_pipeline: z.boolean().default(false),
+    parking_2_wheeler: z.boolean().default(false),
+    parking_4_wheeler: z.boolean().default(false),
+    power_backup: z.boolean().default(false),
+    elevator: z.boolean().default(false),
+    housekeeping: z.boolean().default(false),
+    pets_allowed: z.boolean().default(false),
+    smoking_allowed_inside: z.boolean().default(false),
+    party_friendly: z.boolean().default(false),
+    guest_allowed: z.boolean().default(false),
+
+    // Safety Features
+    fire_extinguisher: z.boolean().default(false),
+    fire_alarm: z.boolean().default(false),
+    first_aid_kit: z.boolean().default(false),
+    security_guard: z.boolean().default(false),
+    cctv: z.boolean().default(false),
+    wheelchair_accessible: z.boolean().default(false),
+
+    // Tenants Info
+    preferred_gender: z.enum(["Male", "Female", "Any", "Others"]).default("Any").optional(),
+    preferred_occupation: z.enum(["Student", "Working Professional", "Any"]).default("Any").optional(),
+    age_range_min: z.number().min(0).max(99).optional(),
+    age_range_max: z.number().min(0).max(99).optional(),
+    tenant_religion_preference: z.enum(["Muslim", "Hindu", "Christian", "Sikh", "Buddhists", "Jains", "Others", "Any"]).default("Any").optional(),
 });
 
 const CreateListingPage = () => {
@@ -54,34 +101,10 @@ const CreateListingPage = () => {
 
     const [currentSteps, setCurrentSteps] = useState("Basics");
     const [images, setImages] = useState<File[]>([]);
-    const [selectedGenders, setSelectedGenders] = useState<string[]>([]);
-    const [amenities, setAmenities] = useState({
-        wifi: false,
-        air_conditioning: false,
-        geyser: false,
-        refrigerator: false,
-        washing_machine: false,
-        wardrobe: false,
-        ro_purifier: false,
-        gas_pipeline: false,
-        parking_2_wheeler: false,
-        parking_4_wheeler: false,
-        power_backup: false,
-        elevator: false,
-        housekeeping: false,
-        pets_allowed: false,
-        smoking_allowed_inside: false,
-        party_friendly: false,
-        guest_allowed: false,
-        fire_extinguisher: false,
-        fire_alarm: false,
-        first_aid_kit: false,
-        security_guard: false,
-        cctv: false,
-        wheelchair_accessible: false,
-    });
 
     const genderOptions = ["Male", "Female", "Any", "Others"];
+    const occupationOptions = ["Student", "Working Professional", "Any"];
+    const religionOptions = ["Muslim", "Hindu", "Christian", "Sikh", "Buddhists", "Jains", "Others", "Any"];
 
     const amenitiesConfig = {
         "Basic Amenities": [
@@ -102,6 +125,7 @@ const CreateListingPage = () => {
             { id: "power_backup", label: "Power Backup", icon: "🔋" },
             { id: "elevator", label: "Elevator", icon: "🛗" },
             { id: "housekeeping", label: "Housekeeping", icon: "🧹" },
+            { id: "has_balcony", label: "Balcony", icon: "🪟" }
         ],
         Lifestyle: [
             { id: "pets_allowed", label: "Pets Allowed", icon: "🐕" },
@@ -123,50 +147,79 @@ const CreateListingPage = () => {
         resolver: zodResolver(listingSchema),
         defaultValues: {
             title: "",
+            description: "",
             address: "",
             city: "",
             state: "",
             pin_code: "",
-            rent: "",
-            deposit: "",
-            maintenance: "",
+            country: "India",
+            monthly_rent: 0,
+            security_deposit: 0,
+            maintenance_charge: 0,
+            electricity_bill_included: false,
+            water_bill_included: false,
+
+            // Room Details - ADD THESE
+            room_type: "Private Room",
+            available_from: new Date(),
+            furnishing: "Furnished",
+            room_size: "",
+            bathroom_type: "Private",
+            has_balcony: false,
+            kitchen_access: "Yes",
+
+            // Contact
             contact_name: "",
             contact_phone: "",
             contact_email: "",
-            preferred_gender: "Any",
+
+            // Availability
+            available_for_visits: false,
             visiting_hours: "",
-            amenities: {
-                wifi: false,
-                air_conditioning: false,
-                geyser: false,
-                refrigerator: false,
-                washing_machine: false,
-                wardrobe: false,
-                ro_purifier: false,
-                gas_pipeline: false,
-                parking_2_wheeler: false,
-                parking_4_wheeler: false,
-                power_backup: false,
-                elevator: false,
-                housekeeping: false,
-                pets_allowed: false,
-                smoking_allowed_inside: false,
-                party_friendly: false,
-                guest_allowed: false,
-                fire_extinguisher: false,
-                fire_alarm: false,
-                first_aid_kit: false,
-                security_guard: false,
-                cctv: false,
-                wheelchair_accessible: false,
-            }
+
+            // Rules
+            terms: "",
+            visibility: true,
+
+            // All amenities
+            wifi: false,
+            air_conditioning: false,
+            geyser: false,
+            refrigerator: false,
+            washing_machine: false,
+            wardrobe: false,
+            ro_purifier: false,
+            gas_pipeline: false,
+            parking_2_wheeler: false,
+            parking_4_wheeler: false,
+            power_backup: false,
+            elevator: false,
+            housekeeping: false,
+            pets_allowed: false,
+            smoking_allowed_inside: false,
+            party_friendly: false,
+            guest_allowed: false,
+            fire_extinguisher: false,
+            fire_alarm: false,
+            first_aid_kit: false,
+            security_guard: false,
+            cctv: false,
+            wheelchair_accessible: false,
+
+            // Tenant Preferences - ADD THESE
+            preferred_gender: "Any",
+            preferred_occupation: "Any",
+            age_range_min: 18,
+            age_range_max: 99,
+            tenant_religion_preference: "Any",
         },
     });
+
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const filesArray = Array.from(e.target.files);
-            setImages((prev) => [...prev, ...filesArray]);
+            setImages((prev) => [...prev, ...filesArray].slice(0, 4)); // Max 4 images
         }
     };
 
@@ -175,80 +228,222 @@ const CreateListingPage = () => {
     };
 
     const onSubmit = async (data: z.infer<typeof listingSchema>) => {
+        // TODO: Upload images to Cloudinary and get URLs
+        // TODO: Add created_by field with user ID
+        // TODO: Add auto_deleted_at if needed
+
         const payload = {
             ...data,
-            preferred_gender: selectedGenders,
-            amenities,
+            // image_url_1, image_url_2, etc. will be added after upload
+            // created_by: userId, // Add from auth context
         };
+
         toast.success("Listing submitted successfully!");
         console.log(payload);
     };
 
     const renderBasics = () => (
         <div className="space-y-6">
-            <CustomFormField fieldType={FormFieldType.INPUT} control={form.control} name="title" label="Title" placeholder="Spacious 2BHK near Metro Station" />
-            <CustomFormField fieldType={FormFieldType.INPUT} control={form.control} name="address" label="Address" placeholder="Complete address" />
-            <div className="grid grid-cols-2 gap-4">
-                <CustomFormField fieldType={FormFieldType.INPUT} control={form.control} name="city" label="City" placeholder="Mumbai" />
-                <CustomFormField fieldType={FormFieldType.INPUT} control={form.control} name="state" label="State" placeholder="Maharashtra" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-                <CustomFormField fieldType={FormFieldType.INPUT} control={form.control} name="pin_code" label="PIN Code" placeholder="400001" />
-                <CustomFormField fieldType={FormFieldType.DATE_Picker} control={form.control} name="available_from" label="Available From" />
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-                <CustomFormField fieldType={FormFieldType.INPUT} control={form.control} name="rent" label="Monthly Rent (₹)" placeholder="10000" />
-                <CustomFormField fieldType={FormFieldType.INPUT} control={form.control} name="deposit" label="Security Deposit (₹)" placeholder="5000" />
-                <CustomFormField fieldType={FormFieldType.INPUT} control={form.control} name="maintenance" label="Maintenance (₹)" placeholder="1000" />
-            </div>
-        </div>
-    );
-
-    const renderDetails = () => (
-        <div className="space-y-6">
             <CustomFormField
-                fieldType={FormFieldType.SELECT}
+                fieldType={FormFieldType.INPUT}
                 control={form.control}
-                name="room_type"
-                label="Room Type"
-                placeholder="Select room type"
-            >
-                <SelectItem value="Private Room">Private Room</SelectItem>
-                <SelectItem value="Shared">Shared</SelectItem>
-                <SelectItem value="PG">PG</SelectItem>
-                <SelectItem value="Studio">Studio</SelectItem>
-            </CustomFormField>
+                name="title"
+                label="Title"
+                placeholder="Spacious 2BHK near Metro Station"
+                required
+            />
 
             <CustomFormField
                 fieldType={FormFieldType.TEXTAREA}
                 control={form.control}
                 name="description"
                 label="Description"
-                placeholder="Describe your listing..."
+                placeholder="Describe your listing in detail..."
             />
+
+            <CustomFormField
+                fieldType={FormFieldType.INPUT}
+                control={form.control}
+                name="address"
+                label="Address"
+                placeholder="Complete address"
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+                <CustomFormField
+                    fieldType={FormFieldType.INPUT}
+                    control={form.control}
+                    name="city"
+                    label="City"
+                    placeholder="Mumbai"
+                />
+                <CustomFormField
+                    fieldType={FormFieldType.INPUT}
+                    control={form.control}
+                    name="state"
+                    label="State"
+                    placeholder="Maharashtra"
+                />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+                <CustomFormField
+                    fieldType={FormFieldType.INPUT}
+                    control={form.control}
+                    name="pin_code"
+                    label="PIN Code"
+                    placeholder="400001"
+                />
+                <CustomFormField
+                    fieldType={FormFieldType.INPUT}
+                    control={form.control}
+                    name="country"
+                    label="Country"
+                    placeholder="India"
+                />
+
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+                <CustomFormField
+                    fieldType={FormFieldType.NUMBER}
+                    control={form.control}
+                    name="monthly_rent"
+                    label="Monthly Rent (₹)"
+                    placeholder="10000"
+                />
+                <CustomFormField
+                    fieldType={FormFieldType.NUMBER}
+                    control={form.control}
+                    name="security_deposit"
+                    label="Security Deposit (₹)"
+                    placeholder="5000"
+                />
+                <CustomFormField
+                    fieldType={FormFieldType.NUMBER}
+                    control={form.control}
+                    name="maintenance_charge"
+                    label="Maintenance (₹)"
+                    placeholder="1000"
+                />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+
+                <CustomFormField
+                    fieldType={FormFieldType.CHECKBOX_HIDDEN}
+                    control={form.control}
+                    name="electricity_bill_included"
+                    label="Electricity bill included"
+                    iconSrc="💡"
+                />
+
+                <CustomFormField
+                    fieldType={FormFieldType.CHECKBOX_HIDDEN}
+                    control={form.control}
+                    name="water_bill_included"
+                    label="Water bill included"
+                    iconSrc="💧"
+                />
+
+
+            </div>
+        </div>
+    );
+
+    const renderDetails = () => (
+        <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+                <CustomFormField
+                    fieldType={FormFieldType.SELECT}
+                    control={form.control}
+                    name="room_type"
+                    label="Room Type"
+                    placeholder="Select room type"
+                >
+                    <SelectItem value="Private Room">Private Room</SelectItem>
+                    <SelectItem value="Shared">Shared</SelectItem>
+                    <SelectItem value="PG">PG</SelectItem>
+                    <SelectItem value="Studio">Studio</SelectItem>
+                    <SelectItem value="Entire Apartment">Entire Apartment</SelectItem>
+                </CustomFormField>
+
+                <CustomFormField
+                    fieldType={FormFieldType.SELECT}
+                    control={form.control}
+                    name="kitchen_access"
+                    label="Kitchen Access"
+                    placeholder="Select kitchen access"
+                >
+                    <SelectItem value="Yes">Yes</SelectItem>
+                    <SelectItem value="No">No</SelectItem>
+                    <SelectItem value="Shared">Shared</SelectItem>
+                </CustomFormField>
+
+
+            </div>
+
+
+            <div className="grid grid-cols-2 gap-4">
+                <CustomFormField
+                    fieldType={FormFieldType.SELECT}
+                    control={form.control}
+                    name="furnishing"
+                    label="Furnishing"
+                    placeholder="Select furnishing"
+                >
+                    <SelectItem value="Furnished">Furnished</SelectItem>
+                    <SelectItem value="Semi-Furnished">Semi-Furnished</SelectItem>
+                    <SelectItem value="Unfurnished">Unfurnished</SelectItem>
+                </CustomFormField>
+
+                <CustomFormField
+                    fieldType={FormFieldType.SELECT}
+                    control={form.control}
+                    name="bathroom_type"
+                    label="Bathroom Type"
+                    placeholder="Select bathroom type"
+                >
+                    <SelectItem value="Private">Private</SelectItem>
+                    <SelectItem value="Shared">Shared</SelectItem>
+                    <SelectItem value="Attached">Attached</SelectItem>
+                </CustomFormField>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+                <CustomFormField
+                    fieldType={FormFieldType.INPUT}
+                    control={form.control}
+                    name="room_size"
+                    label="Room Size (sq ft)"
+                    placeholder="150"
+                />
+
+
+                <CustomFormField
+                    fieldType={FormFieldType.DATE_Picker}
+                    control={form.control}
+                    name="available_from"
+                    label="Available From"
+                />
+            </div>
 
             <div>
                 <h3 className="text-lg font-semibold mb-4">Amenities</h3>
-
-
-
 
                 {Object.entries(amenitiesConfig).map(([category, items]) => (
                     <div key={category} className="mb-6">
                         <h4 className="font-semibold mb-3 text-base">{category}</h4>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            {items.map((BasicAmenities) => (
-
+                            {items.map((amenity) => (
                                 <CustomFormField
-                                    key={BasicAmenities.id}
+                                    key={amenity.id}
                                     fieldType={FormFieldType.CHECKBOX_HIDDEN}
                                     control={form.control}
-                                    name={`amenities.${BasicAmenities.id}`}
-                                    label={BasicAmenities.label}
-                                    iconSrc={BasicAmenities.icon}
-
+                                    name={amenity.id}
+                                    label={amenity.label}
+                                    iconSrc={amenity.icon}
                                 />
-
                             ))}
                         </div>
                     </div>
@@ -257,55 +452,88 @@ const CreateListingPage = () => {
         </div>
     );
 
-
-
     const renderRoommates = () => (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-lg font-semibold mb-4 text-muted-foreground uppercase">
+            <div className="space-y-6">
+                <h2 className="text-lg font-semibold  text-muted-foreground uppercase">
                     Tenant Preferences
                 </h2>
+
                 <div className="mb-4">
                     <Label className="text-base mb-3 block">Preferred Gender</Label>
-                    <FormField
-                        control={form.control}
+                    <CustomFormField
+                        fieldType={FormFieldType.RADIO}
                         name="preferred_gender"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormControl>
-                                    <RadioGroup
-                                        onValueChange={field.onChange}
-                                        value={field.value}
-                                        className="flex gap-3 flex-wrap"
-                                    >
-                                        {genderOptions.map((gender) => (
-                                            <FormItem key={gender}>
-                                                <FormControl>
-                                                    <div className="relative">
-                                                        <RadioGroupItem
-                                                            value={gender}
-                                                            id={gender}
-                                                            className="sr-only peer"
-                                                        />
-                                                        <Label
-                                                            htmlFor={gender}
-                                                            className={cn(
-                                                                "cursor-pointer px-4 py-2 rounded-md border transition-all duration-200",
-                                                                "peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground peer-data-[state=checked]:border-primary",
-                                                                "hover:bg-accent hover:text-accent-foreground",
-                                                                field.value === gender && "bg-primary text-primary-foreground border-primary"
-                                                            )}
-                                                        >
-                                                            {gender}
-                                                        </Label>
-                                                    </div>
-                                                </FormControl>
-                                            </FormItem>
-                                        ))}
-                                    </RadioGroup>
-                                </FormControl>
-                            </FormItem>
-                        )}
+                        control={form.control}
+                    >
+                        {genderOptions.map((gender) => (
+                            <div key={gender} className="relative">
+                                <RadioGroupItem
+                                    value={gender}
+                                    id={gender}
+                                    className="sr-only peer"
+                                />
+                                <Label
+                                    htmlFor={gender}
+                                    className={cn(
+                                        "cursor-pointer px-4 py-2 rounded-md border transition-all duration-200",
+                                        "peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground peer-data-[state=checked]:border-primary",
+                                        "hover:bg-accent hover:text-accent-foreground"
+                                    )}
+                                >
+                                    {gender}
+                                </Label>
+                            </div>
+                        ))}
+                    </CustomFormField>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                    <CustomFormField
+                        fieldType={FormFieldType.SELECT}
+                        control={form.control}
+                        name="preferred_occupation"
+                        label="Preferred Occupation"
+                        placeholder="Select preferred occupation"
+                    >
+                        {occupationOptions.map((occupation) => (
+                            <SelectItem key={occupation} value={occupation}>
+                                {occupation}
+                            </SelectItem>
+                        ))}
+                    </CustomFormField>
+
+                    <CustomFormField
+                        fieldType={FormFieldType.SELECT}
+                        control={form.control}
+                        name="tenant_religion_preference"
+                        label="Religion Preference"
+                        placeholder="Select religion preference"
+                    >
+                        {religionOptions.map((religion) => (
+                            <SelectItem key={religion} value={religion}>
+                                {religion}
+                            </SelectItem>
+                        ))}
+                    </CustomFormField>
+                </div>
+
+
+
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                    <CustomFormField
+                        fieldType={FormFieldType.NUMBER}
+                        control={form.control}
+                        name="age_range_min"
+                        label="Minimum Age"
+                        placeholder="18"
+                    />
+                    <CustomFormField
+                        fieldType={FormFieldType.NUMBER}
+                        control={form.control}
+                        name="age_range_max"
+                        label="Maximum Age"
+                        placeholder="99"
                     />
                 </div>
             </div>
@@ -314,36 +542,61 @@ const CreateListingPage = () => {
                 <h2 className="text-lg font-semibold mb-4 text-muted-foreground uppercase">
                     Contact Information
                 </h2>
-                <CustomFormField fieldType={FormFieldType.INPUT} control={form.control} name="contact_name" label="Contact Name" placeholder="Your name" />
+                <CustomFormField
+                    fieldType={FormFieldType.INPUT}
+                    control={form.control}
+                    name="contact_name"
+                    label="Contact Name"
+                    placeholder="Your name"
+                />
 
                 <div className="grid grid-cols-2 gap-4">
-                    <CustomFormField fieldType={FormFieldType.INPUT} control={form.control} name="contact_phone" label="Contact Phone" placeholder="10-digit phone number" />
-                    <CustomFormField fieldType={FormFieldType.INPUT} control={form.control} name="contact_email" label="Contact Email" placeholder="your@email.com" />
+                    <CustomFormField
+                        fieldType={FormFieldType.NUMBER}
+                        control={form.control}
+                        name="contact_phone"
+                        label="Contact Phone"
+                        placeholder="10-digit phone number"
+                    />
+                    <CustomFormField
+                        fieldType={FormFieldType.INPUT}
+                        control={form.control}
+                        name="contact_email"
+                        label="Contact Email"
+                        placeholder="your@email.com"
+                    />
                 </div>
             </div>
 
-            <div>
-                <h2 className="text-lg font-semibold mb-4 text-muted-foreground uppercase">
-                    Availability for Visits
-                </h2>
-                <div className="space-y-4">
-                    <div className="flex items-center space-x-2">
-                        <Checkbox id="available_for_visits" />
-                        <Label htmlFor="available_for_visits" className="text-base font-normal cursor-pointer">
-                            Available for property visits
-                        </Label>
-                    </div>
-                    <CustomFormField fieldType={FormFieldType.INPUT} control={form.control} name="visiting_hours" label="Visiting Hours" placeholder="Mon-Fri 6-8 PM, Sat-Sun 10 AM-6 PM" />
-                </div>
-            </div>
+
         </div>
     );
 
     const renderImages = () => (
         <div className="space-y-6">
-            <input type="file" id="image-upload" multiple accept="image/*" onChange={handleImageUpload} className="hidden" />
+            <div className="bg-muted/50 p-4 rounded-md">
+                <p className="text-sm text-muted-foreground flex items-center gap-2">
+                    <Info className="h-4 w-4" />
+                    Upload up to 4 images. First image will be the cover photo.
+                </p>
+            </div>
+
+            <input
+                type="file"
+                id="image-upload"
+                multiple
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+            />
+
             <Label htmlFor="image-upload">
-                <Button variant="default" onClick={() => document.getElementById("image-upload")?.click()} disabled={images.length >= 4}>
+                <Button
+                    variant="default"
+                    onClick={() => document.getElementById("image-upload")?.click()}
+                    disabled={images.length >= 4}
+                    type="button"
+                >
                     <Upload className="mr-2 h-4 w-4" /> Upload Photos ({images.length}/4)
                 </Button>
             </Label>
@@ -353,9 +606,19 @@ const CreateListingPage = () => {
                     {images.map((image, index) => (
                         <Card key={index} className="relative">
                             <CardContent className="p-2">
-                                <img src={URL.createObjectURL(image)} alt={`Upload ${index + 1}`} className="w-full h-32 object-cover rounded" />
+                                <img
+                                    src={URL.createObjectURL(image)}
+                                    alt={`Upload ${index + 1}`}
+                                    className="w-full h-32 object-cover rounded"
+                                />
                                 {index === 0 && <Badge className="absolute top-2 left-2 bg-blue-600">Cover</Badge>}
-                                <Button size="icon" variant="destructive" className="absolute top-2 right-2 h-6 w-6" onClick={() => removeImage(index)}>
+                                <Button
+                                    size="icon"
+                                    variant="destructive"
+                                    className="absolute top-2 right-2 h-6 w-6"
+                                    onClick={() => removeImage(index)}
+                                    type="button"
+                                >
                                     <X className="h-4 w-4" />
                                 </Button>
                             </CardContent>
@@ -368,12 +631,49 @@ const CreateListingPage = () => {
 
     const renderRules = () => (
         <div className="space-y-6">
-            <CustomFormField fieldType={FormFieldType.TEXTAREA} control={form.control} name="terms" label="House Rules & Terms" placeholder="Describe house rules..." />
-            <div className="flex items-center space-x-2">
-                <Checkbox id="visibility" defaultChecked />
-                <Label htmlFor="visibility" className="text-base font-normal cursor-pointer">
-                    Make this listing visible to public
-                </Label>
+
+            <div className="space-y-6">
+                <h2 className="text-lg font-semibold mb-4 text-muted-foreground uppercase">
+                    Availability for Visits
+                </h2>
+                <div className="space-y-6">
+
+                    <CustomFormField
+                        fieldType={FormFieldType.CHECKBOX}
+                        control={form.control}
+                        name="available_for_visits"
+                        label="Available for property visits"
+                        className="flex"
+                    />
+
+                    <CustomFormField
+                        fieldType={FormFieldType.INPUT}
+                        control={form.control}
+                        name="visiting_hours"
+                        label="Visiting Hours"
+                        placeholder="Mon-Fri 6-8 PM, Sat-Sun 10 AM-6 PM"
+                        disabled={!form.watch("available_for_visits")}
+                    />
+                </div>
+                <div className="space-y-6">
+                    <CustomFormField
+                        fieldType={FormFieldType.TEXTAREA}
+                        control={form.control}
+                        name="terms"
+                        label="House Rules & Terms"
+                        placeholder="Describe house rules..."
+                        labelClassname="font-bold"
+                    />
+
+                    <CustomFormField
+                        fieldType={FormFieldType.CHECKBOX}
+                        control={form.control}
+                        name="visibility"
+                        label=" Make this listing visible to public"
+                        className="flex"
+                    />
+
+                </div>
             </div>
         </div>
     );
@@ -400,7 +700,6 @@ const CreateListingPage = () => {
             <div className="w-full max-w-7xl mb-6">
                 <div className="flex items-center justify-between">
                     <h1 className="text-3xl font-bold">Create Room Listing</h1>
-                    <Button variant="outline">Save and Close</Button>
                 </div>
                 {/* Progress Bar */}
                 <Progress
@@ -416,7 +715,6 @@ const CreateListingPage = () => {
                             onSubmit={form.handleSubmit(onSubmit)}
                             className="flex flex-col justify-between h-full space-y-6"
                         >
-                            {/* Step Content */}
                             {/* Animated Step Content */}
                             <AnimatePresence mode="wait">
                                 <motion.div
@@ -431,7 +729,7 @@ const CreateListingPage = () => {
                             </AnimatePresence>
 
                             {/* Navigation Buttons */}
-                            <div className="flex justify-between pt-6 border-t ">
+                            <div className="flex justify-between pt-6 border-t">
                                 <Button
                                     type="button"
                                     variant="outline"

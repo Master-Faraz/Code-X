@@ -10,7 +10,6 @@ import { useState } from 'react';
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from './ui/input-otp';
 
 // Date Picker dependancy
-import { ChevronDownIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -39,7 +38,8 @@ export enum FormFieldType {
   SELECT = "select",
   CHECKBOX = 'checkbox',
   RADIO = "radio",
-  CHECKBOX_HIDDEN = "checkboxHidden"
+  CHECKBOX_HIDDEN = "checkboxHidden",
+  NUMBER = "number"
 }
 
 interface CustomProps {
@@ -53,6 +53,8 @@ interface CustomProps {
   className?: string;
   children?: React.ReactNode;
   fieldType: FormFieldType;
+  labelClassname?: string,
+  required?: boolean
 }
 
 const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
@@ -291,10 +293,31 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
           <RadioGroup
             value={field.value}
             onValueChange={field.onChange}
+            className='flex gap-3 flex-wrap'
           >
             {props.children}
           </RadioGroup>
         </FormControl>
+      );
+
+
+    case FormFieldType.NUMBER:
+      return (
+        <div className={`flex rounded-md border hover:shadow-xl transition ease-in-out duration-400 `}>
+          {props.iconSrc && <Image src={props.iconSrc} height={24} width={24} alt={props.iconAlt || 'icon'} className="ml-2" />}
+
+          <FormControl>
+            <Input
+              type='number'
+              placeholder={props.placeholder}
+              value={field.value ?? ''}
+              {...field}
+              className="text-sm leading-[18px] font-medium focus-visible:ring-0 focus-visible:ring-offset-0 border-none text-card-foreground placeholder:text-muted-foreground/70"
+              id={props.name}
+              disabled={props.disabled}
+            />
+          </FormControl>
+        </div>
       );
 
 
@@ -327,7 +350,7 @@ const CustomFormField = (props: CustomProps) => {
 
       render={({ field }) => (
         < FormItem className={`${className}`}>
-          {label && <FormLabel className="text-card-foreground">{label}</FormLabel>}
+          {label && <FormLabel className={`text-card-foreground ${props.labelClassname}`}>{label}{props.required ? <span className='text-red-600'>*</span> : ""}</FormLabel>}
           <RenderInput field={field} props={props} />
           <FormMessage className="text-destructive" />
         </FormItem>
