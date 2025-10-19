@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 // Validation schema matching Appwrite collection
+
 const listingSchema = z.object({
     // Images, IDs and Title
     title: z.string().min(3, "Title is required"),
@@ -33,16 +34,35 @@ const listingSchema = z.object({
     country: z.string().default("India"),
 
     // Pricing
-    monthly_rent: z.number().min(0, "Rent must be positive"),
-    security_deposit: z.number().min(0, "Deposit must be positive"),
-    maintenance_charge: z.number().optional(),
+    monthly_rent: z.preprocess(
+        (val) => (typeof val === "string" ? Number(val) : val),
+        z.number().min(0, "Rent must be positive")
+    ),
+    security_deposit: z.preprocess(
+        (val) => (typeof val === "string" ? Number(val) : val),
+        z.number().min(0, "Deposit must be positive")
+    ),
+    maintenance_charge: z.preprocess(
+        (val) => (typeof val === "string" ? Number(val) : val),
+        z.number().optional()
+    ),
+
     electricity_bill_included: z.boolean().default(false),
     water_bill_included: z.boolean().default(false),
 
     // Room Details
-    room_type: z.enum(["Private Room", "Shared", "PG", "Studio", "Entire Apartment"]),
+    room_type: z.enum([
+        "Private Room",
+        "Shared",
+        "PG",
+        "Studio",
+        "Entire Apartment",
+    ]),
     available_from: z.date(),
-    furnishing: z.enum(["Furnished", "Semi-Furnished", "Unfurnished"]).optional(),
+    available_till: z.date().optional(),
+    furnishing: z
+        .enum(["Furnished", "Semi-Furnished", "Unfurnished"])
+        .optional(),
     room_size: z.string().optional(),
     bathroom_type: z.enum(["Private", "Shared", "Attached"]).optional(),
     has_balcony: z.boolean().default(false),
@@ -61,7 +81,7 @@ const listingSchema = z.object({
     terms: z.string().optional(),
     visibility: z.boolean().default(true),
 
-    // Amenities - Individual boolean fields
+    // Amenities — default to false so never undefined
     wifi: z.boolean().default(false),
     air_conditioning: z.boolean().default(false),
     geyser: z.boolean().default(false),
@@ -80,7 +100,7 @@ const listingSchema = z.object({
     party_friendly: z.boolean().default(false),
     guest_allowed: z.boolean().default(false),
 
-    // Safety Features
+    // Safety Features — default to false so never undefined
     fire_extinguisher: z.boolean().default(false),
     fire_alarm: z.boolean().default(false),
     first_aid_kit: z.boolean().default(false),
@@ -88,23 +108,39 @@ const listingSchema = z.object({
     cctv: z.boolean().default(false),
     wheelchair_accessible: z.boolean().default(false),
 
-    // Tenants Info
-    preferred_gender: z.enum(["Male", "Female", "Any", "Others"]).default("Any").optional(),
-    preferred_occupation: z.enum(["Student", "Working Professional", "Any"]).default("Any").optional(),
+    // Tenant Preferences — default ensures always defined
+    preferred_gender: z
+        .enum(["Male", "Female", "Any", "Others"])
+        .default("Any"),
+    preferred_occupation: z
+        .enum(["Student", "Working Professional", "Any"])
+        .default("Any"),
     age_range_min: z.number().min(0).max(99).optional(),
     age_range_max: z.number().min(0).max(99).optional(),
-    tenant_religion_preference: z.enum(["Muslim", "Hindu", "Christian", "Sikh", "Buddhists", "Jains", "Others", "Any"]).default("Any").optional(),
+    tenant_religion_preference: z
+        .enum([
+            "Muslim",
+            "Hindu",
+            "Christian",
+            "Sikh",
+            "Buddhists",
+            "Jains",
+            "Others",
+            "Any",
+        ])
+        .default("Any"),
 });
 
+
 const CreateListingPage = () => {
-    const steps = ["Basics", "Details", "Roommates", "Images", "Rules"];
+    const steps = ["Basics", "Room Details", "Roommates", "Images", "Rules"];
 
     const [currentSteps, setCurrentSteps] = useState("Basics");
     const [images, setImages] = useState<File[]>([]);
 
-    const genderOptions = ["Male", "Female", "Any", "Others"];
-    const occupationOptions = ["Student", "Working Professional", "Any"];
-    const religionOptions = ["Muslim", "Hindu", "Christian", "Sikh", "Buddhists", "Jains", "Others", "Any"];
+    const genderOptions = ["Male", "Female", "Any", "Others", ""];
+    const occupationOptions = ["Student", "Working Professional", "Any", ""];
+    const religionOptions = ["Muslim", "Hindu", "Christian", "Sikh", "Buddhists", "Jains", "Others", "Any", ""];
 
     const amenitiesConfig = {
         "Basic Amenities": [
@@ -162,6 +198,7 @@ const CreateListingPage = () => {
             // Room Details - ADD THESE
             room_type: "Private Room",
             available_from: new Date(),
+            available_till: new Date(),
             furnishing: "Furnished",
             room_size: "",
             bathroom_type: "Private",
@@ -209,8 +246,8 @@ const CreateListingPage = () => {
             // Tenant Preferences - ADD THESE
             preferred_gender: "Any",
             preferred_occupation: "Any",
-            age_range_min: 18,
-            age_range_max: 99,
+            // age_range_min: 18,
+            // age_range_max: 99,
             tenant_religion_preference: "Any",
         },
     });
@@ -232,11 +269,62 @@ const CreateListingPage = () => {
         // TODO: Add created_by field with user ID
         // TODO: Add auto_deleted_at if needed
 
+        // Mapping required fields to their section
+        // const requiredFields: Record<string, string> = {
+        //     title: "Basics",
+        //     description: "Basics",
+        //     address: "Basics",
+        //     city: "Basics",
+        //     state: "Basics",
+        //     pin_code: "Basics",
+        //     monthly_rent: "Basics",
+        //     security_deposit: "Basics",
+        //     contact_name: "Roommates",
+        //     contact_phone: "Roommates",
+        //     contact_email: "Roommates",
+        //     room_type: "Details",
+        //     available_from: "Details",
+        // };
+
+        // // Collect all missing required fields
+        // const missingFields = Object.entries(requiredFields).filter(([field]) => {
+        //     const value = (data as any)[field];
+        //     return (
+        //         value === undefined ||
+        //         value === null ||
+        //         value === "" ||
+        //         (typeof value === "number" && isNaN(value))
+        //     );
+        // });
+
+        // // If any required field missing → show toast and highlight section
+        // if (missingFields.length > 0) {
+        //     const firstMissingSection = missingFields[0][1];
+        //     const fieldsList = missingFields.map(([f]) => f.replaceAll("_", " ")).join(", ");
+
+        //     toast.error(
+        //         `Please fill all required fields: ${fieldsList}. Missing in "${firstMissingSection}" section.`
+        //     );
+
+        //     // Optionally set the current step to that section
+        //     setCurrentSteps(firstMissingSection);
+        //     return;
+        // }
+
+        // // Image check
+        // if (images.length === 0) {
+        //     toast.error("Please upload at least one image before submitting.");
+        //     setCurrentSteps("Images");
+        //     return;
+        // }
+        // If all validations pass
         const payload = {
             ...data,
-            // image_url_1, image_url_2, etc. will be added after upload
-            // created_by: userId, // Add from auth context
+            // image_url_1, image_url_2... will be filled after upload
+            // created_by: userId (add from auth context)
         };
+
+        console.log(data)
 
         toast.success("Listing submitted successfully!");
         console.log(payload);
@@ -244,6 +332,7 @@ const CreateListingPage = () => {
 
     const renderBasics = () => (
         <div className="space-y-6">
+            <h3 className="font-semibold text-lg">Basic info :</h3>
             <CustomFormField
                 fieldType={FormFieldType.INPUT}
                 control={form.control}
@@ -259,7 +348,11 @@ const CreateListingPage = () => {
                 name="description"
                 label="Description"
                 placeholder="Describe your listing in detail..."
+                required
             />
+
+            <h3 className="font-semibold text-lg mt-6">Location Details :</h3>
+
 
             <CustomFormField
                 fieldType={FormFieldType.INPUT}
@@ -267,6 +360,7 @@ const CreateListingPage = () => {
                 name="address"
                 label="Address"
                 placeholder="Complete address"
+                required
             />
 
             <div className="grid grid-cols-2 gap-4">
@@ -275,14 +369,18 @@ const CreateListingPage = () => {
                     control={form.control}
                     name="city"
                     label="City"
-                    placeholder="Mumbai"
+                    placeholder="ex: Mumbai"
+                    required
+
                 />
                 <CustomFormField
                     fieldType={FormFieldType.INPUT}
                     control={form.control}
                     name="state"
                     label="State"
-                    placeholder="Maharashtra"
+                    placeholder="ex: Maharashtra"
+                    required
+
                 />
             </div>
 
@@ -292,7 +390,9 @@ const CreateListingPage = () => {
                     control={form.control}
                     name="pin_code"
                     label="PIN Code"
-                    placeholder="400001"
+                    placeholder="ex: 400001"
+                    required
+
                 />
                 <CustomFormField
                     fieldType={FormFieldType.INPUT}
@@ -304,20 +404,25 @@ const CreateListingPage = () => {
 
             </div>
 
+            <h3 className="font-semibold text-lg mt-6">Pricing Details :</h3>
+
+
             <div className="grid grid-cols-3 gap-4">
                 <CustomFormField
                     fieldType={FormFieldType.NUMBER}
                     control={form.control}
                     name="monthly_rent"
                     label="Monthly Rent (₹)"
-                    placeholder="10000"
+                    required
+
                 />
                 <CustomFormField
                     fieldType={FormFieldType.NUMBER}
                     control={form.control}
                     name="security_deposit"
                     label="Security Deposit (₹)"
-                    placeholder="5000"
+                    required
+
                 />
                 <CustomFormField
                     fieldType={FormFieldType.NUMBER}
@@ -351,8 +456,10 @@ const CreateListingPage = () => {
         </div>
     );
 
-    const renderDetails = () => (
+    const renderRoomDetails = () => (
         <div className="space-y-6">
+            <h3 className="font-semibold text-lg mt-6">Room Details :</h3>
+
             <div className="grid grid-cols-2 gap-4">
                 <CustomFormField
                     fieldType={FormFieldType.SELECT}
@@ -360,6 +467,8 @@ const CreateListingPage = () => {
                     name="room_type"
                     label="Room Type"
                     placeholder="Select room type"
+                    required
+
                 >
                     <SelectItem value="Private Room">Private Room</SelectItem>
                     <SelectItem value="Shared">Shared</SelectItem>
@@ -391,6 +500,8 @@ const CreateListingPage = () => {
                     name="furnishing"
                     label="Furnishing"
                     placeholder="Select furnishing"
+                    required
+
                 >
                     <SelectItem value="Furnished">Furnished</SelectItem>
                     <SelectItem value="Semi-Furnished">Semi-Furnished</SelectItem>
@@ -411,6 +522,24 @@ const CreateListingPage = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
+
+                <CustomFormField
+                    fieldType={FormFieldType.DATE_Picker}
+                    control={form.control}
+                    name="available_from"
+                    label="Room Available From"
+                    required
+
+                />
+
+                <CustomFormField
+                    fieldType={FormFieldType.DATE_Picker}
+                    control={form.control}
+                    name="available_till"
+                    label="Room Available till"
+                />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
                 <CustomFormField
                     fieldType={FormFieldType.INPUT}
                     control={form.control}
@@ -420,17 +549,15 @@ const CreateListingPage = () => {
                 />
 
 
-                <CustomFormField
-                    fieldType={FormFieldType.DATE_Picker}
-                    control={form.control}
-                    name="available_from"
-                    label="Available From"
-                />
             </div>
 
-            <div>
-                <h3 className="text-lg font-semibold mb-4">Amenities</h3>
 
+            <div className="space-y-6">
+                <div>
+                    <h3 className="text-lg font-semibold mb-1 ">Amenities</h3>
+                    <p className="mb-6 text-sm text-foreground/50">Please select the fields below based on what your room have</p>
+
+                </div>
                 {Object.entries(amenitiesConfig).map(([category, items]) => (
                     <div key={category} className="mb-6">
                         <h4 className="font-semibold mb-3 text-base">{category}</h4>
@@ -488,7 +615,7 @@ const CreateListingPage = () => {
                     </CustomFormField>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-2 gap-4 mb-4 space-y-6">
                     <CustomFormField
                         fieldType={FormFieldType.SELECT}
                         control={form.control}
@@ -520,20 +647,20 @@ const CreateListingPage = () => {
 
 
 
-                <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-2 gap-4 mb-4 ">
                     <CustomFormField
                         fieldType={FormFieldType.NUMBER}
                         control={form.control}
                         name="age_range_min"
                         label="Minimum Age"
-                        placeholder="18"
+                        placeholder="ex: 18"
                     />
                     <CustomFormField
                         fieldType={FormFieldType.NUMBER}
                         control={form.control}
                         name="age_range_max"
                         label="Maximum Age"
-                        placeholder="99"
+                        placeholder="ex: 99"
                     />
                 </div>
             </div>
@@ -548,6 +675,7 @@ const CreateListingPage = () => {
                     name="contact_name"
                     label="Contact Name"
                     placeholder="Your name"
+                    required
                 />
 
                 <div className="grid grid-cols-2 gap-4">
@@ -557,6 +685,8 @@ const CreateListingPage = () => {
                         name="contact_phone"
                         label="Contact Phone"
                         placeholder="10-digit phone number"
+                        required
+
                     />
                     <CustomFormField
                         fieldType={FormFieldType.INPUT}
@@ -564,6 +694,8 @@ const CreateListingPage = () => {
                         name="contact_email"
                         label="Contact Email"
                         placeholder="your@email.com"
+                        required
+
                     />
                 </div>
             </div>
@@ -590,16 +722,17 @@ const CreateListingPage = () => {
                 className="hidden"
             />
 
-            <Label htmlFor="image-upload">
-                <Button
-                    variant="default"
-                    onClick={() => document.getElementById("image-upload")?.click()}
-                    disabled={images.length >= 4}
-                    type="button"
-                >
-                    <Upload className="mr-2 h-4 w-4" /> Upload Photos ({images.length}/4)
-                </Button>
-            </Label>
+            {/* <Label htmlFor="image-upload"> */}
+
+            <Button
+                variant="default"
+                onClick={() => document.getElementById("image-upload")?.click()}
+                disabled={images.length >= 4}
+                type="button"
+            >
+                <Upload className="mr-2 h-4 w-4" /> Upload Photos ({images.length}/4)
+            </Button>
+            {/* </Label> */}
 
             {images.length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -682,8 +815,8 @@ const CreateListingPage = () => {
         switch (currentSteps) {
             case "Basics":
                 return renderBasics();
-            case "Details":
-                return renderDetails();
+            case "Room Details":
+                return renderRoomDetails();
             case "Roommates":
                 return renderRoommates();
             case "Images":
@@ -712,7 +845,10 @@ const CreateListingPage = () => {
                 <section className="flex-1 p-8 overflow-y-auto">
                     <Form {...form}>
                         <form
-                            onSubmit={form.handleSubmit(onSubmit)}
+                            onSubmit={(e) => {
+                                e.preventDefault(); // stop unintended submits
+                                form.handleSubmit(onSubmit)(e);
+                            }}
                             className="flex flex-col justify-between h-full space-y-6"
                         >
                             {/* Animated Step Content */}
@@ -747,17 +883,22 @@ const CreateListingPage = () => {
                                 {currentSteps !== "Rules" ? (
                                     <Button
                                         type="button"
-                                        onClick={() =>
-                                            setCurrentSteps(
-                                                steps[steps.indexOf(currentSteps) + 1] ||
-                                                steps[steps.length - 1]
-                                            )
-                                        }
-                                        className="hover:cursor-pointer"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation(); // 🧠 stop bubbling before DOM swap
+
+                                            // small delay ensures the click event finishes before Rules mounts
+                                            setTimeout(() => {
+                                                setCurrentSteps(
+                                                    steps[steps.indexOf(currentSteps) + 1] || steps[steps.length - 1]
+                                                );
+                                            }, 50);
+                                        }}
                                     >
                                         Next
                                     </Button>
                                 ) : (
+
                                     <Button type="submit" variant="default">
                                         Submit Listing
                                     </Button>
