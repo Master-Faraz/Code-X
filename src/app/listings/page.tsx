@@ -6,10 +6,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Info, Upload, X } from "lucide-react";
 import CustomFormField, { FormFieldType } from "@/components/CustomFormField";
 import { cn } from "@/lib/utils";
@@ -17,7 +16,11 @@ import { Progress } from "@/components/ui/progress";
 import { motion, AnimatePresence } from "framer-motion";
 import { SelectItem } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { RadioGroupItem } from "@/components/ui/radio-group";
+import CreateListingDocument from "@/actions/createListing.action";
+import uploadImage from "@/actions/imageUploader.action";
+import { ImageSizeKey } from "@/constants/imageUploaderConstants";
+import { useAuthStore } from "@/store/auth";
 
 // Validation schema matching Appwrite collection
 
@@ -25,6 +28,10 @@ const listingSchema = z.object({
     // Images, IDs and Title
     title: z.string().min(3, "Title is required"),
     description: z.string().min(10, "Description is required"),
+    image_url_1: z.string(),
+    image_url_2: z.string(),
+    image_url_3: z.string(),
+    image_url_4: z.string(),
 
     // Location
     address: z.string().min(5, "Address is required"),
@@ -33,19 +40,10 @@ const listingSchema = z.object({
     pin_code: z.string().length(6, "PIN code must be 6 digits"),
     country: z.string().default("India"),
 
-    // Pricing
-    monthly_rent: z.preprocess(
-        (val) => (typeof val === "string" ? Number(val) : val),
-        z.number().min(0, "Rent must be positive")
-    ),
-    security_deposit: z.preprocess(
-        (val) => (typeof val === "string" ? Number(val) : val),
-        z.number().min(0, "Deposit must be positive")
-    ),
-    maintenance_charge: z.preprocess(
-        (val) => (typeof val === "string" ? Number(val) : val),
-        z.number().optional()
-    ),
+    // Pricing (we’ll convert manually — so allow string here)
+    monthly_rent: z.string().optional(),
+    security_deposit: z.string().optional(),
+    maintenance_charge: z.string().optional(),
 
     electricity_bill_included: z.boolean().default(false),
     water_bill_included: z.boolean().default(false),
@@ -57,21 +55,27 @@ const listingSchema = z.object({
         "PG",
         "Studio",
         "Entire Apartment",
-    ]),
+        "Please Select"
+    ]).default("Please Select"),
     available_from: z.date(),
     available_till: z.date().optional(),
-    furnishing: z
-        .enum(["Furnished", "Semi-Furnished", "Unfurnished"])
-        .optional(),
+    furnishing: z.enum(["Furnished", "Semi-Furnished", "Unfurnished", "Please Select"]).default("Please Select"),
     room_size: z.string().optional(),
-    bathroom_type: z.enum(["Private", "Shared", "Attached"]).optional(),
+    bathroom_type: z.enum(["Private", "Shared", "Attached", "Please Select"]).default("Please Select").optional(),
     has_balcony: z.boolean().default(false),
-    kitchen_access: z.enum(["Yes", "No", "Shared"]).optional(),
+    kitchen_access: z.enum(["Yes", "No", "Shared", "Please Select"]).default("Please Select").optional(),
+
+
+
+    room_layout: z.enum(["1RK", "1BHK", "2BHK", "3BHK", "4BHK", "Please Select"]),
+    listed_by: z.enum(["House_Owner", "Room_Sharer", "Please Select"]),
+
+
 
     // Contact & Verification
     contact_name: z.string().min(1, "Name is required"),
-    contact_phone: z.string().min(10, "Phone is required"),
-    contact_email: z.string().email("Invalid email"),
+    contact_phone: z.string().optional(),
+    contact_email: z.string().optional(),
 
     // Availability
     available_for_visits: z.boolean().default(false),
@@ -81,7 +85,7 @@ const listingSchema = z.object({
     terms: z.string().optional(),
     visibility: z.boolean().default(true),
 
-    // Amenities — default to false so never undefined
+    // Amenities
     wifi: z.boolean().default(false),
     air_conditioning: z.boolean().default(false),
     geyser: z.boolean().default(false),
@@ -100,7 +104,6 @@ const listingSchema = z.object({
     party_friendly: z.boolean().default(false),
     guest_allowed: z.boolean().default(false),
 
-    // Safety Features — default to false so never undefined
     fire_extinguisher: z.boolean().default(false),
     fire_alarm: z.boolean().default(false),
     first_aid_kit: z.boolean().default(false),
@@ -108,39 +111,39 @@ const listingSchema = z.object({
     cctv: z.boolean().default(false),
     wheelchair_accessible: z.boolean().default(false),
 
-    // Tenant Preferences — default ensures always defined
-    preferred_gender: z
-        .enum(["Male", "Female", "Any", "Others"])
-        .default("Any"),
-    preferred_occupation: z
-        .enum(["Student", "Working Professional", "Any"])
-        .default("Any"),
-    age_range_min: z.number().min(0).max(99).optional(),
-    age_range_max: z.number().min(0).max(99).optional(),
-    tenant_religion_preference: z
-        .enum([
-            "Muslim",
-            "Hindu",
-            "Christian",
-            "Sikh",
-            "Buddhists",
-            "Jains",
-            "Others",
-            "Any",
-        ])
-        .default("Any"),
+    // Tenant Preferences
+    preferred_gender: z.enum(["Male", "Female", "Any", "Others"]).default("Any"),
+    preferred_occupation: z.enum(["Please Select", "Student", "Working Professional", "Any"]).default("Any"),
+    tenant_religion_preference: z.enum([
+        "Please Select",
+        "Muslim",
+        "Hindu",
+        "Christian",
+        "Sikh",
+        "Buddhists",
+        "Jains",
+        "Others",
+        "Any"]).default("Any"),
+
+    age_range_min: z.string().optional(),
+    age_range_max: z.string().optional(),
 });
 
 
+
 const CreateListingPage = () => {
+
+    const user = useAuthStore(state => state.user)
+
     const steps = ["Basics", "Room Details", "Roommates", "Images", "Rules"];
+    const [loading, setLoading] = useState(false)
 
     const [currentSteps, setCurrentSteps] = useState("Basics");
     const [images, setImages] = useState<File[]>([]);
 
-    const genderOptions = ["Male", "Female", "Any", "Others", ""];
-    const occupationOptions = ["Student", "Working Professional", "Any", ""];
-    const religionOptions = ["Muslim", "Hindu", "Christian", "Sikh", "Buddhists", "Jains", "Others", "Any", ""];
+    const genderOptions = ["Male", "Female", "Any", "Others"];
+    const occupationOptions = ["Student", "Working Professional", "Any"];
+    const religionOptions = ["Muslim", "Hindu", "Christian", "Sikh", "Buddhists", "Jains", "Others", "Any"];
 
     const amenitiesConfig = {
         "Basic Amenities": [
@@ -189,36 +192,33 @@ const CreateListingPage = () => {
             state: "",
             pin_code: "",
             country: "India",
-            monthly_rent: 0,
-            security_deposit: 0,
-            maintenance_charge: 0,
+            monthly_rent: "",
+            security_deposit: "",
+            maintenance_charge: "",
             electricity_bill_included: false,
             water_bill_included: false,
 
-            // Room Details - ADD THESE
-            room_type: "Private Room",
+            room_type: "Please Select",
             available_from: new Date(),
             available_till: new Date(),
-            furnishing: "Furnished",
+            furnishing: "Please Select",
             room_size: "",
-            bathroom_type: "Private",
+            bathroom_type: "Please Select",
             has_balcony: false,
-            kitchen_access: "Yes",
+            kitchen_access: "Please Select",
+            room_layout: "Please Select",
+            listed_by: "Please Select",
 
-            // Contact
+
             contact_name: "",
             contact_phone: "",
             contact_email: "",
 
-            // Availability
             available_for_visits: false,
             visiting_hours: "",
-
-            // Rules
             terms: "",
             visibility: true,
 
-            // All amenities
             wifi: false,
             air_conditioning: false,
             geyser: false,
@@ -243,15 +243,54 @@ const CreateListingPage = () => {
             cctv: false,
             wheelchair_accessible: false,
 
-            // Tenant Preferences - ADD THESE
             preferred_gender: "Any",
             preferred_occupation: "Any",
-            // age_range_min: 18,
-            // age_range_max: 99,
             tenant_religion_preference: "Any",
+            age_range_min: "",
+            age_range_max: "",
+
+            image_url_1: "",
+            image_url_2: "",
+            image_url_3: "",
+            image_url_4: "",
         },
     });
 
+
+    const CloudinaryImageUpload = async () => {
+        if (!images || images.length === 0) {
+            toast.error("Please upload images")
+            return
+        }
+        const arr = ["image_url_1", "image_url_2", "image_url_3", "image_url_4"]
+
+        try {
+            // uploading images to cloudinary
+
+            for (let i = 0; i < images.length; i++) {
+                // getting the current images DB name 
+                const curr_image = arr[i];
+
+                // uploading image to cloudinary
+                const res = await uploadImage({
+                    file: images[i],
+                    sizeKeys: [ImageSizeKey.POST]
+                })
+
+                // setting the image value in payload
+                form.setValue(curr_image as keyof z.infer<typeof listingSchema>, res);
+                // payload.image_url_1 = res
+
+
+            }
+            toast.success("All images uploaded successfully!");
+
+        } catch (error: any) {
+            console.error(error);
+            toast.error(error.message || "Error while uploading image ");
+            if (error.error.message) toast.error(error.error.message);
+        }
+    }
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -265,70 +304,191 @@ const CreateListingPage = () => {
     };
 
     const onSubmit = async (data: z.infer<typeof listingSchema>) => {
-        // TODO: Upload images to Cloudinary and get URLs
-        // TODO: Add created_by field with user ID
-        // TODO: Add auto_deleted_at if needed
+        setLoading(true)
 
-        // Mapping required fields to their section
-        // const requiredFields: Record<string, string> = {
-        //     title: "Basics",
-        //     description: "Basics",
-        //     address: "Basics",
-        //     city: "Basics",
-        //     state: "Basics",
-        //     pin_code: "Basics",
-        //     monthly_rent: "Basics",
-        //     security_deposit: "Basics",
-        //     contact_name: "Roommates",
-        //     contact_phone: "Roommates",
-        //     contact_email: "Roommates",
-        //     room_type: "Details",
-        //     available_from: "Details",
-        // };
+        try {
+            // **************************************** Validation  ***********************************
+            // --- Required fields validation ---
+            const requiredChecks = [
+                { key: "title", label: "Title" },
+                { key: "description", label: "Description" },
+                { key: "address", label: "Address" },
+                { key: "city", label: "City" },
+                { key: "state", label: "State" },
+                { key: "pin_code", label: "PIN Code" },
+                { key: "monthly_rent", label: "Monthly Rent" },
+                { key: "security_deposit", label: "Security Deposit" },
+                { key: "room_type", label: "Room Type" },
+                { key: "available_from", label: "Available From" },
+                { key: "contact_name", label: "Contact Name" },
+                { key: "contact_phone", label: "Contact Phone" },
+                { key: "contact_email", label: "Contact Email" },
+                { key: "room_layout", label: "Room Layout" },
+                { key: "listed_by", label: "Room Listed By" },
+            ];
 
-        // // Collect all missing required fields
-        // const missingFields = Object.entries(requiredFields).filter(([field]) => {
-        //     const value = (data as any)[field];
-        //     return (
-        //         value === undefined ||
-        //         value === null ||
-        //         value === "" ||
-        //         (typeof value === "number" && isNaN(value))
-        //     );
-        // });
+            const missing = requiredChecks.filter(({ key }) => {
+                const value = (data as any)[key];
+                return (
+                    value === undefined ||
+                    value === null ||
+                    value === "" ||
+                    (typeof value === "number" && isNaN(value))
+                );
+            });
 
-        // // If any required field missing → show toast and highlight section
-        // if (missingFields.length > 0) {
-        //     const firstMissingSection = missingFields[0][1];
-        //     const fieldsList = missingFields.map(([f]) => f.replaceAll("_", " ")).join(", ");
+            if (missing.length > 0) {
+                const fieldList = missing.map((f) => f.label).join(", ");
+                toast.error(`Please fill all required fields: ${fieldList}`);
+                return;
+            }
 
-        //     toast.error(
-        //         `Please fill all required fields: ${fieldsList}. Missing in "${firstMissingSection}" section.`
-        //     );
+            // --- Numeric validations ---
+            const numRegex = /^\d+$/;
 
-        //     // Optionally set the current step to that section
-        //     setCurrentSteps(firstMissingSection);
-        //     return;
-        // }
+            // PIN Code → 6 digits only
+            if (!/^\d{6}$/.test(data.pin_code)) {
+                toast.error("Please enter a valid pin code");
+                return;
+            }
 
-        // // Image check
-        // if (images.length === 0) {
-        //     toast.error("Please upload at least one image before submitting.");
-        //     setCurrentSteps("Images");
-        //     return;
-        // }
-        // If all validations pass
-        const payload = {
-            ...data,
-            // image_url_1, image_url_2... will be filled after upload
-            // created_by: userId (add from auth context)
-        };
+            // Monthly Rent / Deposit → numeric & positive
+            if (!numRegex.test(data.monthly_rent!) || Number(data.monthly_rent) <= 0) {
+                toast.error("Monthly Rent must be a valid number");
+                return;
+            }
+            if (!numRegex.test(data.security_deposit!) || Number(data.security_deposit) < 0) {
+                toast.error("Security Deposit must be a valid number");
+                return;
+            }
 
-        console.log(data)
+            // Maintenance charge → optional but must be numeric if filled
+            if (data.maintenance_charge && !numRegex.test(data.maintenance_charge)) {
+                toast.error("Maintenance Charge must be a valid number");
+                return;
+            }
 
-        toast.success("Listing submitted successfully!");
-        console.log(payload);
+            // --- Age range validation (optional inputs) ---
+            const minAge = data.age_range_min ? Number(data.age_range_min) : null;
+            const maxAge = data.age_range_max ? Number(data.age_range_max) : null;
+
+            if (minAge !== null) {
+                if (isNaN(minAge) || minAge < 18) {
+                    toast.error("Minimum age must be at least 18");
+                    return;
+                }
+            }
+
+            if (maxAge !== null) {
+                if (isNaN(maxAge) || maxAge > 99) {
+                    toast.error("Maximum age must be less than 99");
+                    return;
+                }
+            }
+
+            if (minAge !== null && maxAge !== null && minAge > maxAge) {
+                toast.error("Minimum age cannot be greater than maximum age");
+                return;
+            }
+
+            // ---  Phone & email format ---
+            const phone = data.contact_phone?.trim() || "";
+            if (!/^\d{10}$/.test(phone)) {
+                toast.error("Please enter a valid 10-digit phone number");
+                return;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(data.contact_email || "")) {
+                toast.error("Please enter a valid email address");
+                return;
+            }
+
+            // ---  Image validation ---
+            if (images.length < 1) {
+                toast.error("Please upload at least one image before submitting your listing.");
+                setCurrentSteps("Images");
+                return;
+            }
+
+            // ---  Date sanity check ---
+            if (!(data.available_from instanceof Date) || isNaN(data.available_from.getTime())) {
+                toast.error("Please select a valid 'Available From' date");
+                return;
+            }
+
+            if (data.furnishing === "Please Select") {
+                toast.error("Please select a valid 'Room Furnishing' ");
+                return;
+            }
+            if (data.room_type === "Please Select") {
+                toast.error("Please select a valid 'Room Type' ");
+                return;
+            }
+            if (data.room_layout === "Please Select") {
+                toast.error("Please select a valid 'Room Layout' ");
+                return;
+            }
+            if (data.listed_by === "Please Select") {
+                toast.error("Please select a valid Listed By ");
+                return;
+            }
+
+
+            // **************************************** Validation End ***********************************
+
+
+            // Cloudinary image uploader
+            await CloudinaryImageUpload()
+
+            // ---  Construct clean payload ---
+            const payload = {
+                ...data,
+                // Typecasting to number
+                monthly_rent: Number(data.monthly_rent),
+                security_deposit: Number(data.security_deposit),
+                maintenance_charge: data.maintenance_charge
+                    ? Number(data.maintenance_charge)
+                    : 0,
+                age_range_min: Number(minAge) || null,
+                age_range_max: Number(maxAge) || null,
+
+                // image_url_1: "", // placeholder
+                // image_url_2: "", // placeholder
+                // image_url_3: "", // placeholder
+                // image_url_4: "", // placeholder
+                created_by: user?.$id, // user id 
+
+                // room_type: data.room_type === "Please Select" ? null : data.room_type,
+                // furnishing: data.furnishing === "Please Select" ? null : data.furnishing,
+                bathroom_type: data.bathroom_type === "Please Select" ? null : data.bathroom_type,
+                kitchen_access: data.kitchen_access === "Please Select" ? null : data.kitchen_access,
+
+
+
+            };
+            console.log(payload)
+
+            // createing the listing db
+            const listingResponse = await CreateListingDocument(payload)
+
+            toast.success(listingResponse.message);
+            setLoading(false)
+        } catch (error: any) {
+            console.error(error)
+            const error_message = `${error.message} Error :: ${error.error.message}`
+            toast.error(error_message);
+        }
+        finally {
+            setLoading(false)
+
+        }
+
+
     };
+
+
+
 
     const renderBasics = () => (
         <div className="space-y-6">
@@ -409,23 +569,26 @@ const CreateListingPage = () => {
 
             <div className="grid grid-cols-3 gap-4">
                 <CustomFormField
-                    fieldType={FormFieldType.NUMBER}
+                    fieldType={FormFieldType.INPUT}
                     control={form.control}
                     name="monthly_rent"
                     label="Monthly Rent (₹)"
+                    placeholder="ex: 5000"
                     required
 
                 />
                 <CustomFormField
-                    fieldType={FormFieldType.NUMBER}
+                    fieldType={FormFieldType.INPUT}
                     control={form.control}
                     name="security_deposit"
                     label="Security Deposit (₹)"
+                    placeholder="ex: 10000"
+
                     required
 
                 />
                 <CustomFormField
-                    fieldType={FormFieldType.NUMBER}
+                    fieldType={FormFieldType.INPUT}
                     control={form.control}
                     name="maintenance_charge"
                     label="Maintenance (₹)"
@@ -460,7 +623,7 @@ const CreateListingPage = () => {
         <div className="space-y-6">
             <h3 className="font-semibold text-lg mt-6">Room Details :</h3>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 space-y-6">
                 <CustomFormField
                     fieldType={FormFieldType.SELECT}
                     control={form.control}
@@ -470,6 +633,7 @@ const CreateListingPage = () => {
                     required
 
                 >
+                    <SelectItem value="Please Select">Please Select</SelectItem>
                     <SelectItem value="Private Room">Private Room</SelectItem>
                     <SelectItem value="Shared">Shared</SelectItem>
                     <SelectItem value="PG">PG</SelectItem>
@@ -480,10 +644,40 @@ const CreateListingPage = () => {
                 <CustomFormField
                     fieldType={FormFieldType.SELECT}
                     control={form.control}
+                    name="listed_by"
+                    label="Room listed by"
+                    required
+
+                >
+                    <SelectItem value="Please Select">Please Select</SelectItem>
+                    <SelectItem value="House_Owner">House Owner</SelectItem>
+                    <SelectItem value="Room_Sharer">Room Sharer</SelectItem>
+                </CustomFormField>
+
+                <CustomFormField
+                    fieldType={FormFieldType.SELECT}
+                    control={form.control}
+                    name="room_layout"
+                    label="Room layout"
+                    required
+
+                >
+                    <SelectItem value="Please Select">Please Select</SelectItem>
+                    <SelectItem value="1RK">1 RK</SelectItem>
+                    <SelectItem value="1BHK">1 BHK</SelectItem>
+                    <SelectItem value="2BHK">2 BHK</SelectItem>
+                    <SelectItem value="3BHK">3 BHK</SelectItem>
+                    <SelectItem value="4BHK">4 BHK</SelectItem>
+                </CustomFormField>
+
+                <CustomFormField
+                    fieldType={FormFieldType.SELECT}
+                    control={form.control}
                     name="kitchen_access"
                     label="Kitchen Access"
                     placeholder="Select kitchen access"
                 >
+                    <SelectItem value="Please Select">Please Select</SelectItem>
                     <SelectItem value="Yes">Yes</SelectItem>
                     <SelectItem value="No">No</SelectItem>
                     <SelectItem value="Shared">Shared</SelectItem>
@@ -503,6 +697,7 @@ const CreateListingPage = () => {
                     required
 
                 >
+                    <SelectItem value="Please Select">Please Select</SelectItem>
                     <SelectItem value="Furnished">Furnished</SelectItem>
                     <SelectItem value="Semi-Furnished">Semi-Furnished</SelectItem>
                     <SelectItem value="Unfurnished">Unfurnished</SelectItem>
@@ -515,6 +710,7 @@ const CreateListingPage = () => {
                     label="Bathroom Type"
                     placeholder="Select bathroom type"
                 >
+                    <SelectItem value="Please Select">Please Select</SelectItem>
                     <SelectItem value="Private">Private</SelectItem>
                     <SelectItem value="Shared">Shared</SelectItem>
                     <SelectItem value="Attached">Attached</SelectItem>
@@ -649,14 +845,14 @@ const CreateListingPage = () => {
 
                 <div className="grid grid-cols-2 gap-4 mb-4 ">
                     <CustomFormField
-                        fieldType={FormFieldType.NUMBER}
+                        fieldType={FormFieldType.INPUT}
                         control={form.control}
                         name="age_range_min"
                         label="Minimum Age"
                         placeholder="ex: 18"
                     />
                     <CustomFormField
-                        fieldType={FormFieldType.NUMBER}
+                        fieldType={FormFieldType.INPUT}
                         control={form.control}
                         name="age_range_max"
                         label="Maximum Age"
@@ -680,7 +876,7 @@ const CreateListingPage = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                     <CustomFormField
-                        fieldType={FormFieldType.NUMBER}
+                        fieldType={FormFieldType.INPUT}
                         control={form.control}
                         name="contact_phone"
                         label="Contact Phone"
@@ -885,7 +1081,7 @@ const CreateListingPage = () => {
                                         type="button"
                                         onClick={(e) => {
                                             e.preventDefault();
-                                            e.stopPropagation(); // 🧠 stop bubbling before DOM swap
+                                            e.stopPropagation(); //  stop bubbling before DOM swap
 
                                             // small delay ensures the click event finishes before Rules mounts
                                             setTimeout(() => {
@@ -899,7 +1095,7 @@ const CreateListingPage = () => {
                                     </Button>
                                 ) : (
 
-                                    <Button type="submit" variant="default">
+                                    <Button type="submit" variant="default" disabled={loading}>
                                         Submit Listing
                                     </Button>
                                 )}

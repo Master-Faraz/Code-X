@@ -1,26 +1,12 @@
-import { Label } from "@/components/ui/label"
-import {
-  RadioGroup,
-  RadioGroupItem,
-} from "@/components/ui/radio-group"
+import React from 'react'
 
-export default function RadioGroupDemo() {
+const page = () => {
   return (
-    <div className="flex items-center justify-center h-screen w-full">
-      <RadioGroup defaultValue="comfortable">
-        <div className="flex items-center gap-3">
-          <RadioGroupItem value="default" id="r1" />
-          <Label htmlFor="r1">Default</Label>
-        </div>
-        <div className="flex items-center gap-3">
-          <RadioGroupItem value="comfortable" id="r2" />
-          <Label htmlFor="r2">Comfortable</Label>
-        </div>
-        <div className="flex items-center gap-3">
-          <RadioGroupItem value="compact" id="r3" />
-          <Label htmlFor="r3">Compact</Label>
-        </div>
-      </RadioGroup>
+    <div className='h-screen w-full flex items-center justify-center bg-amber-100'>
+      <div className='bg-cyan-400 w-[800] h-[600]' />
+
     </div>
   )
 }
+
+export default page

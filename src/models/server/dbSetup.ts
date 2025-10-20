@@ -17,14 +17,14 @@ export default async function getOrCreateDB() {
       console.log('Database created successfully');
 
       // Create Collection
-      // await Promise.all([
-      //   createUserCollection(),
-      //   createRoomListingCollection(),
-      //   createSavedPostsCollection(),
-      //   createChatCollection(),
-      //   createMessagesCollection(),
-      //   createTransactionCollection()
-      // ]);
+      await Promise.all([
+        createUserCollection(),
+        createRoomListingCollection(),
+        createSavedPostsCollection(),
+        createChatCollection(),
+        createMessagesCollection(),
+        createTransactionCollection()
+      ]);
 
       // Execute sequentially instead of parallel
       await createUserCollection();

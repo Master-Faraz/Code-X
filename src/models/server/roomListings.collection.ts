@@ -5,6 +5,7 @@ import { databases } from './config';
 export default async function createRoomListingCollection() {
   await databases.createCollection(db, listingCollection, listingCollection, [
     Permission.read('any'),
+    Permission.read('users'),
     Permission.create('users'),
     Permission.update('users'),
     Permission.delete('users')
@@ -18,14 +19,13 @@ export default async function createRoomListingCollection() {
     databases.createStringAttribute(db, listingCollection, 'image_url_2', 1000, false),
     databases.createStringAttribute(db, listingCollection, 'image_url_3', 1000, false),
     databases.createStringAttribute(db, listingCollection, 'image_url_4', 1000, false),
-    // databases.createStringAttribute(db, listingCollection, 'id', 36, true),
     databases.createStringAttribute(db, listingCollection, 'title', 150, true),
     databases.createStringAttribute(db, listingCollection, 'description', 2000, true),
     databases.createStringAttribute(db, listingCollection, 'created_by', 36, true), //  user id for searching
 
     // Metadata
     databases.createBooleanAttribute(db, listingCollection, 'visibility', false, true),
-    databases.createDatetimeAttribute(db, listingCollection, 'auto_deleted_at', true),
+    // databases.createDatetimeAttribute(db, listingCollection, 'auto_deleted_at', true),
 
     // Rules & Terms
     databases.createStringAttribute(db, listingCollection, 'terms', 2000, false),
@@ -56,8 +56,12 @@ export default async function createRoomListingCollection() {
     // Room Details
     databases.createEnumAttribute(db, listingCollection, 'room_type', ['Private Room', 'Shared', 'PG', 'Studio', 'Entire Apartment'], true),
 
+    databases.createEnumAttribute(db, listingCollection, 'room_layout', ['1RK', '1BHK', '2BHK', '3BHK', '4BHK'], true),
+    databases.createEnumAttribute(db, listingCollection, 'listed_by', ['House_Owner', 'Room_Sharer'], true),
+
     databases.createDatetimeAttribute(db, listingCollection, 'available_from', true),
-    databases.createEnumAttribute(db, listingCollection, 'furnishing', ['Furnished', 'Semi-Furnished', 'Unfurnished'], false),
+    databases.createDatetimeAttribute(db, listingCollection, 'available_till', false),
+    databases.createEnumAttribute(db, listingCollection, 'furnishing', ['Furnished', 'Semi-Furnished', 'Unfurnished'], true),
     databases.createStringAttribute(db, listingCollection, 'room_size', 30, false),
     databases.createEnumAttribute(db, listingCollection, 'bathroom_type', ['Private', 'Shared', 'Attached'], false),
     databases.createBooleanAttribute(db, listingCollection, 'has_balcony', false, false),
@@ -112,7 +116,6 @@ export default async function createRoomListingCollection() {
 
   // Indexes
   await Promise.all([
-    // databases.createIndex(db, listingCollection, 'idx_id', IndexType.Unique, ['id'], ['asc']),
     databases.createIndex(db, listingCollection, 'idx_city', IndexType.Key, ['city']),
     databases.createIndex(db, listingCollection, 'idx_state', IndexType.Key, ['state']),
     databases.createIndex(db, listingCollection, 'idx_visibility', IndexType.Key, ['visibility']),
@@ -163,8 +166,7 @@ export default async function createRoomListingCollection() {
       'guest_allowed'
     ]),
 
-    // Optional utility: find expiring listings
-    databases.createIndex(db, listingCollection, 'idx_auto_delete_at', IndexType.Key, ['auto_deleted_at'], ['asc'])
+    databases.createIndex(db, listingCollection, 'idx_room_layout', IndexType.Key, ['room_layout'])
   ]);
 
   console.log('Attributes and indexes added successfully');
