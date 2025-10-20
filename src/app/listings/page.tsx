@@ -21,6 +21,21 @@ import CreateListingDocument from "@/actions/createListing.action";
 import uploadImage from "@/actions/imageUploader.action";
 import { ImageSizeKey } from "@/constants/imageUploaderConstants";
 import { useAuthStore } from "@/store/auth";
+import { MultiStepLoader as Loader } from "@/components/ui/multi-step-loader";
+const loadingStates = [
+    {
+        text: "Validating all fields",
+    },
+    {
+        text: "Uploading images",
+    },
+    {
+        text: "Creating your listing",
+    },
+    {
+        text: "All Done 🎉",
+    },
+];
 
 // Validation schema matching Appwrite collection
 
@@ -137,6 +152,7 @@ const CreateListingPage = () => {
 
     const steps = ["Basics", "Room Details", "Roommates", "Images", "Rules"];
     const [loading, setLoading] = useState(false)
+    const [currentStep, setCurrentStep] = useState(0);
 
     const [currentSteps, setCurrentSteps] = useState("Basics");
     const [images, setImages] = useState<File[]>([]);
@@ -308,7 +324,8 @@ const CreateListingPage = () => {
 
         try {
             // **************************************** Validation  ***********************************
-            // --- Required fields validation ---
+            setCurrentStep(0); // "Validating all required fields"
+
             const requiredChecks = [
                 { key: "title", label: "Title" },
                 { key: "description", label: "Description" },
@@ -343,6 +360,7 @@ const CreateListingPage = () => {
                 return;
             }
 
+
             // --- Numeric validations ---
             const numRegex = /^\d+$/;
 
@@ -367,6 +385,7 @@ const CreateListingPage = () => {
                 toast.error("Maintenance Charge must be a valid number");
                 return;
             }
+
 
             // --- Age range validation (optional inputs) ---
             const minAge = data.age_range_min ? Number(data.age_range_min) : null;
@@ -404,12 +423,6 @@ const CreateListingPage = () => {
                 return;
             }
 
-            // ---  Image validation ---
-            if (images.length < 1) {
-                toast.error("Please upload at least one image before submitting your listing.");
-                setCurrentSteps("Images");
-                return;
-            }
 
             // ---  Date sanity check ---
             if (!(data.available_from instanceof Date) || isNaN(data.available_from.getTime())) {
@@ -435,11 +448,22 @@ const CreateListingPage = () => {
             }
 
 
+            // ---  Image validation ---
+            if (images.length < 1) {
+                toast.error("Please upload at least one image before submitting your listing.");
+                setCurrentSteps("Images");
+                return;
+            }
+
+
             // **************************************** Validation End ***********************************
 
+            setCurrentStep(1); // "Uploading images"
 
             // Cloudinary image uploader
             await CloudinaryImageUpload()
+
+            setCurrentStep(2); // "Creating your listing"
 
             // ---  Construct clean payload ---
             const payload = {
@@ -472,6 +496,7 @@ const CreateListingPage = () => {
             // createing the listing db
             const listingResponse = await CreateListingDocument(payload)
 
+            setCurrentStep(3); // "All Done 🎉"
             toast.success(listingResponse.message);
             setLoading(false)
         } catch (error: any) {
@@ -480,8 +505,10 @@ const CreateListingPage = () => {
             toast.error(error_message);
         }
         finally {
-            setLoading(false)
-
+            setTimeout(() => {
+                setLoading(false);
+                setCurrentStep(0);
+            }, 1000);
         }
 
 
@@ -1024,8 +1051,16 @@ const CreateListingPage = () => {
         }
     };
 
+
+
     return (
         <main className="mt-16 min-h-screen w-full flex flex-col items-center justify-center p-6">
+            <Loader
+                loadingStates={loadingStates}
+                loading={loading}
+                loop={false}
+                value={currentStep}
+            />
             <div className="w-full max-w-7xl mb-6">
                 <div className="flex items-center justify-between">
                     <h1 className="text-3xl font-bold">Create Room Listing</h1>

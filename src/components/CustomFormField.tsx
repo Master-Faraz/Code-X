@@ -59,6 +59,7 @@ interface CustomProps {
 
 const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [open, setOpen] = useState(false);
 
   switch (props.fieldType) {
     case FormFieldType.INPUT:
@@ -193,7 +194,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
 
     case FormFieldType.DATE_Picker:
       return (
-        <Popover>
+        <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <FormControl>
               <Button
@@ -216,11 +217,17 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
             <Calendar
               mode="single"
               selected={field.value}
-              onSelect={field.onChange}
+              // onSelect={field.onChange}
+              onSelect={date => {
+                field.onChange(date)
+                setOpen(false)
+              }}
               disabled={(date) =>
                 date < new Date("1900-01-01")
               }
               captionLayout="dropdown"
+              startMonth={new Date(1900, 1)}
+              endMonth={new Date(2099, 12)}
 
             />
           </PopoverContent>
