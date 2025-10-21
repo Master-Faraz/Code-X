@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -200,6 +200,7 @@ const CreateListingPage = () => {
 
     const form = useForm<z.infer<typeof listingSchema>>({
         resolver: zodResolver(listingSchema),
+        shouldFocusError: true, // Enable automatic focus on error
         defaultValues: {
             title: "",
             description: "",
@@ -272,6 +273,114 @@ const CreateListingPage = () => {
         },
     });
 
+
+    useEffect(() => {
+        const errors = form.formState.errors;
+        const errorFields = Object.keys(errors);
+
+        if (errorFields.length > 0) {
+            const firstErrorField = errorFields[0];
+
+            // Map error fields to their respective steps
+            const fieldToStepMap: Record<string, string> = {
+                // Basics step
+                title: "Basics",
+                description: "Basics",
+                address: "Basics",
+                city: "Basics",
+                state: "Basics",
+                pin_code: "Basics",
+                monthly_rent: "Basics",
+                security_deposit: "Basics",
+                maintenance_charge: "Basics",
+
+                // Room Details step
+                room_type: "Room Details",
+                listed_by: "Room Details",
+                room_layout: "Room Details",
+                kitchen_access: "Room Details",
+                furnishing: "Room Details",
+                bathroom_type: "Room Details",
+                available_from: "Room Details",
+                available_till: "Room Details",
+                room_size: "Room Details",
+
+                // Roommates step (Contact & Preferences)
+                contact_name: "Roommates",
+                contact_phone: "Roommates",
+                contact_email: "Roommates",
+                preferred_gender: "Roommates",
+                preferred_occupation: "Roommates",
+                tenant_religion_preference: "Roommates",
+                age_range_min: "Roommates",
+                age_range_max: "Roommates",
+
+                // Images step
+                image_url_1: "Images",
+                image_url_2: "Images",
+                image_url_3: "Images",
+                image_url_4: "Images",
+
+                // Rules step
+                available_for_visits: "Rules",
+                visiting_hours: "Rules",
+                terms: "Rules",
+                visibility: "Rules",
+            };
+
+            // Navigate to the step containing the error
+            const errorStep = fieldToStepMap[firstErrorField];
+            if (errorStep && errorStep !== currentSteps) {
+                setCurrentSteps(errorStep);
+            }
+
+            // Scroll to the error field after a small delay to allow step transition
+            setTimeout(() => {
+                const errorElement = document.getElementsByName(firstErrorField)[0];
+
+                if (errorElement) {
+                    errorElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center',
+                        inline: 'nearest'
+                    });
+
+                    // Focus the element
+                    setTimeout(() => {
+                        errorElement.focus({ preventScroll: true });
+                    }, 100);
+                }
+            }, 350); // Match your animation duration
+        }
+    }, [form.formState.errors]);
+
+    // Add an error handler
+    const onError = (errors: any) => {
+        const firstErrorField = Object.keys(errors)[0];
+
+        // Map to step and navigate
+        const fieldToStepMap: Record<string, string> = {
+            // ... same mapping as above
+        };
+
+        const errorStep = fieldToStepMap[firstErrorField];
+        if (errorStep) {
+            setCurrentSteps(errorStep);
+
+            setTimeout(() => {
+                const errorElement = document.getElementsByName(firstErrorField)[0];
+                if (errorElement) {
+                    errorElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                    errorElement.focus({ preventScroll: true });
+                }
+            }, 350);
+        }
+
+        toast.error("Please fix the errors in the form");
+    };
 
     const CloudinaryImageUpload = async () => {
         if (!images || images.length === 0) {
@@ -1078,7 +1187,7 @@ const CreateListingPage = () => {
                         <form
                             onSubmit={(e) => {
                                 e.preventDefault(); // stop unintended submits
-                                form.handleSubmit(onSubmit)(e);
+                                form.handleSubmit(onSubmit, onError)(e);
                             }}
                             className="flex flex-col justify-between h-full space-y-6"
                         >
