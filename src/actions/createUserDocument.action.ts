@@ -19,6 +19,7 @@ interface UserDataTypes {
   plan_type?: 'Free' | 'Premium' | 'Professional' | string;
   plan_start_date?: string | null;
   plan_end_date?: string | null;
+  user_type: 'room_seeker' | 'room_sharer' | 'property_owner';
 }
 interface UpdateUserDataTypes {
   fname?: string;

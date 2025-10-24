@@ -20,7 +20,9 @@ const getUserDocument = async (id: string) => {
       plan_start_date: response.plan_start_date,
       plan_end_date: response.plan_end_date,
       plan_type: response.plan_type,
-      created_at: response.$createdAt
+      created_at: response.$createdAt,
+      user_type: response.user_type,
+      uid: response.uid
     };
 
     return createSuccessResponse('Fetched user successfully', data, 'getUserDocument', 200);

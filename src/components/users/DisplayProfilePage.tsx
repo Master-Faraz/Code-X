@@ -44,6 +44,7 @@ import { HttpError } from '@/utils/httpError'
 import { Input } from '../ui/input'
 import { UpdateUserDocument } from '@/actions/createUserDocument.action'
 import ProfilePageSkeleton from '../ProfileSkeletonPage'
+import { updateUserPrefs } from '@/actions/userPrefs.action'
 
 
 export interface DisplayProfilePageProps {
@@ -66,7 +67,7 @@ type ProfileFormValues = z.infer<typeof profileSchema>
 
 
 interface UserDataType {
-    // uid: string;
+    uid?: string;
     fname: string;
     lname: string;
     email: string;
@@ -80,6 +81,7 @@ interface UserDataType {
     plan_type: 'Free' | 'Premium' | 'Professional'
     plan_start_date: string | null;
     plan_end_date: string | null;
+    user_type: "room_seeker" | "room_sharer" | "property_owner"
 }
 
 
@@ -103,6 +105,8 @@ const DisplayProfilePage: React.FC<DisplayProfilePageProps> = ({ prefs }) => {
     const getUserData = async () => {
         try {
             const { data } = await getUserDocument(prefs.id)
+
+
             if (data)
                 setUserData({
                     fname: data.fname,
@@ -116,6 +120,8 @@ const DisplayProfilePage: React.FC<DisplayProfilePageProps> = ({ prefs }) => {
                     plan_type: data.plan_type,
                     plan_start_date: data.plan_start_date,
                     plan_end_date: data.plan_end_date,
+                    user_type: data.user_type,
+                    uid: data.uid
                 })
         } catch (error) {
             console.error(error)
@@ -205,10 +211,10 @@ const DisplayProfilePage: React.FC<DisplayProfilePageProps> = ({ prefs }) => {
         setImageFile(null)
         setImagePreview(null)
         form.setValue('profile_pic', '')
-        const fileInput = document.getElementById('edit-pic-input') as HTMLInputElement
-        if (fileInput) {
-            fileInput.value = ''
-        }
+        // const fileInput = document.getElementById('edit-pic-input') as HTMLInputElement
+        // if (fileInput) {
+        //     fileInput.value = ''
+        // }
     }
 
     // Setting the image value in Form and user document
@@ -216,24 +222,36 @@ const DisplayProfilePage: React.FC<DisplayProfilePageProps> = ({ prefs }) => {
         if (!imageFile) return null
         setUploadingImage(true)
         try {
+            // uploading Profile_pic to cloudinary 
             const result = await uploadImage({
                 file: imageFile,
                 sizeKeys: [ImageSizeKey.CARD],
                 oldimageID: userData?.profile_pic
             })
 
-            console.log(result)
+            // console.log(result)
 
             if (result) {
                 form.setValue('profile_pic', result)
                 toast.success('Profile picture uploaded successfully')
                 // return result
 
-
-
+                // updating the user document 
                 const response = await UpdateUserDocument({ id: prefs.id, userData: { profile_pic: result } })
 
-                if (response.success) { toast.success(response.message) }
+
+                if (response.success) {
+
+                    toast.success(response.message)
+                    // console.log(userData)
+
+                    // updating the user prefs if profile pic is updated
+                    await updateUserPrefs({
+                        userID: userData?.uid!,
+                        updates: { profile_pic: result }
+                    })
+
+                }
 
                 window.location.reload();
 
@@ -325,9 +343,9 @@ const DisplayProfilePage: React.FC<DisplayProfilePageProps> = ({ prefs }) => {
                 ...values,
             }))
 
+            // updating the user document 
             const response = await UpdateUserDocument({ id: prefs.id, userData: { ...values } })
             if (response.success) { toast.success(response.message) }
-
 
 
             setIsEditing(false)
@@ -365,26 +383,26 @@ const DisplayProfilePage: React.FC<DisplayProfilePageProps> = ({ prefs }) => {
             <header className=" border-b sticky top-0 z-20 shadow-sm backdrop-blur-sm " role="banner">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
                     <hgroup className="flex items-center gap-4">
-                        <figure className="w-10 h-10 ">
-                            <Avatar className="w-10 h-10">
-                                {userData?.profile_pic ? (
-                                    <CldImage
-                                        width={40}
-                                        height={40}
-                                        src={userData.profile_pic}
-                                        alt={`${userData.fname} ${userData.lname} profile picture`}
-                                        crop="auto"
-                                        gravity="face"
-                                        quality="auto"
-                                        format="auto"
-                                        className="rounded-full"
-                                        priority
-                                    />
-                                ) : (
-                                    <AvatarFallback>{getInitials(userData?.fname, userData.lname)}</AvatarFallback>
-                                )}
-                            </Avatar>
-                        </figure>
+                        {/* <figure className="w-10 h-10 "> */}
+                        <Avatar className="w-10 h-10 bg-red-400">
+                            {userData?.profile_pic ? (
+                                <CldImage
+                                    width={40}
+                                    height={40}
+                                    src={userData.profile_pic}
+                                    alt={`${userData.fname} ${userData.lname} profile picture`}
+                                    crop="auto"
+                                    gravity="auto"
+                                    quality="auto"
+                                    format="auto"
+                                    className="rounded-full"
+                                />
+                                // <span> sdklfjlds</span>
+                            ) : (
+                                <AvatarFallback>{getInitials(userData?.fname, userData.lname)}</AvatarFallback>
+                            )}
+                        </Avatar>
+                        {/* </figure> */}
                         <div className='hidden md:block'>
                             <h1 className="text-lg font-semibold">Profile Dashboard</h1>
                             <p className=" text-sm text-slate-600">Manage your account settings</p>
@@ -493,8 +511,8 @@ const DisplayProfilePage: React.FC<DisplayProfilePageProps> = ({ prefs }) => {
                                                                 height={80}
                                                                 src={userData.profile_pic}
                                                                 alt={`${userData.fname} ${userData.lname} profile picture`}
-                                                                crop="fill"
-                                                                gravity="face"
+                                                                crop="auto"
+                                                                gravity="auto"
                                                                 quality="auto"
                                                                 format="auto"
                                                                 className="rounded-full"
@@ -519,25 +537,27 @@ const DisplayProfilePage: React.FC<DisplayProfilePageProps> = ({ prefs }) => {
 
                                                             {/* Dialogue content */}
 
-                                                            <div className='flex  flex-col space-y-6 items-center justify-center'>
+                                                            <div className='flex  flex-col space-y-6 items-center justify-center '>
 
                                                                 {!imagePreview && !imageFile ? (
-                                                                    <Avatar className="w-20 h-20 border-4 rounded-full overflow-hidden">
-                                                                        {userData.profile_pic ? (
-                                                                            <CldImage
-                                                                                width={80}
-                                                                                height={80}
-                                                                                src={userData.profile_pic}
-                                                                                alt={`${userData.fname} ${userData.lname} profile picture`}
-                                                                                crop="fill"
-                                                                                gravity="face"
-                                                                                quality="auto"
-                                                                                format="auto"
-                                                                                className="rounded-full"
-                                                                            />
-                                                                        ) : (
-                                                                            <AvatarFallback>{getInitials(userData.fname, userData.lname)}</AvatarFallback>
-                                                                        )}
+                                                                    <Avatar className=" border-4 rounded-full overflow-hidden w-20 h-20">
+                                                                        {
+                                                                            userData.profile_pic ? (
+                                                                                <CldImage
+                                                                                    width={80}
+                                                                                    height={80}
+                                                                                    src={userData.profile_pic}
+                                                                                    alt={`${userData.fname} ${userData.lname} profile picture`}
+                                                                                    crop="auto"
+                                                                                    gravity="auto"
+                                                                                    quality="auto"
+                                                                                    format="auto"
+                                                                                    className="rounded-full "
+                                                                                />
+                                                                            ) : (
+                                                                                <AvatarFallback>{getInitials(userData.fname, userData.lname)}</AvatarFallback>
+                                                                            )
+                                                                        }
 
                                                                     </Avatar>
                                                                 ) : (
@@ -584,10 +604,6 @@ const DisplayProfilePage: React.FC<DisplayProfilePageProps> = ({ prefs }) => {
                                                             </DialogFooter>
                                                         </DialogContent>
                                                     </Dialog>
-
-
-
-
 
                                                 </figure>
                                                 <hgroup className="flex-1 space-y-2">

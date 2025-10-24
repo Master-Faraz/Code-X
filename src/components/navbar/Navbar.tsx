@@ -12,13 +12,15 @@ import { useAuthStore } from '@/store/auth';
 import LogoutBtn from '../LogoutBtn';
 import dynamic from 'next/dynamic';
 import ThemeToggler from '../ThemeToggler';
+import { CldImage } from 'next-cloudinary';
+import { Avatar, AvatarFallback } from '../ui/avatar';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
   const user = useAuthStore(state => state.user);
-
+  console.log(user)
 
 
   useEffect(() => {
@@ -94,6 +96,24 @@ const Navbar = () => {
                 <MessageCircleMore size={24} />
               </Button>
               <LogoutBtn />
+              <Avatar className="w-10 h-10 bg-red-400">
+                {user.prefs.profile_pic ? (
+                  <CldImage
+                    width={40}
+                    height={40}
+                    src={user.prefs.profile_pic}
+                    alt={`${user.name}  profile picture`}
+                    crop="auto"
+                    gravity="auto"
+                    quality="auto"
+                    format="auto"
+                    className="rounded-full"
+                  />
+                  // <span> sdklfjlds</span>
+                ) : (
+                  <AvatarFallback>{user.name}</AvatarFallback>
+                )}
+              </Avatar>
             </>
           ) : (
             <div className='flex space-x-2'>
@@ -113,6 +133,11 @@ const Navbar = () => {
             </div>
           )}
         </div>
+
+
+
+
+
 
         {/* Mobile Toggle */}
         <div className="md:hidden">
@@ -175,7 +200,11 @@ const Navbar = () => {
             )}
           </nav>
 
+
+
+
           {/* Footer */}
+
           {!user ? (
             <div className="flex-shrink-0 p-4 border-t border-border bg-muted/50">
               <div className="space-y-3">

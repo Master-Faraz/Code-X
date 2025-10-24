@@ -57,6 +57,8 @@ const CreateProfilePage: React.FC<ProfileCompletionPageProps> = ({ setPrefs }) =
     const [profilePicPreview, setProfilePicPreview] = useState<string | null>(null)
     const [uploadingImage, setUploadingImage] = useState(false)
     const user = useAuthStore(state => state.user);
+    const updateUserPrefsState = useAuthStore(state => state.updateUserPrefsState);
+
     const router = useRouter()
 
 
@@ -314,11 +316,14 @@ const CreateProfilePage: React.FC<ProfileCompletionPageProps> = ({ setPrefs }) =
                 // Optional plan fields - set defaults or leave undefined
                 plan_type: 'Free', // Default plan
                 plan_start_date: null,
-                plan_end_date: null
+                plan_end_date: null,
+                user_type: values.user_type
             }
 
+            console.log(userData)
             // Creating the user document in users collection
             const user_document_created = await CreateUserDocument(userData)
+            console.log(user_document_created)
 
             // if the user is not created then return
             if (!user_document_created?.success || !user_document_created.data?.$id) {
@@ -327,12 +332,14 @@ const CreateProfilePage: React.FC<ProfileCompletionPageProps> = ({ setPrefs }) =
             }
 
             // Updating the prefs only after successful document creation
-            const isPrefsUpdated = await updateUserPrefs({
+            await updateUserPrefs({
                 userID: userID,
-                updates: { isCompleted: true, id: user_document_created.data?.$id }
+                updates: { isCompleted: true, id: user_document_created.data?.$id, profile_pic: userData.profile_pic }
             })
 
-            setPrefs({ id: user_document_created.data?.$id, isCompleted: true, totalListings: 0 })
+            updateUserPrefsState({ isCompleted: true, id: user_document_created.data?.$id, profile_pic: userData.profile_pic })
+
+            setPrefs({ id: user_document_created.data?.$id, isCompleted: true, totalListings: 0, profile_pic: userData.profile_pic })
 
 
             // await new Promise(resolve => setTimeout(resolve, 1500)) // Simulate API call
@@ -533,6 +540,40 @@ const CreateProfilePage: React.FC<ProfileCompletionPageProps> = ({ setPrefs }) =
                                             className="w-full"
                                         />
 
+
+
+                                        <div className='flex space-x-2'>
+
+
+                                            {/* Gender - Full width */}
+                                            <CustomFormField
+                                                fieldType={FormFieldType.SELECT}
+                                                control={form.control}
+                                                name="gender"
+                                                label="Gender"
+                                                placeholder="Select gender"
+                                                className="w-full"
+                                            >
+                                                <SelectItem value="Male">Male</SelectItem>
+                                                <SelectItem value="Female">Female</SelectItem>
+                                                <SelectItem value="Others">Others</SelectItem>
+                                            </CustomFormField>
+
+                                            {/* Gender - Full width */}
+                                            <CustomFormField
+                                                fieldType={FormFieldType.SELECT}
+                                                control={form.control}
+                                                name="user_type"
+                                                label="User Type"
+                                                placeholder="Select user type"
+                                                className="w-full"
+                                            >
+                                                <SelectItem value="room_seeker">Room Seeker</SelectItem>
+                                                <SelectItem value="room_sharer">Room Sharer</SelectItem>
+                                                <SelectItem value="property_owner">Property Owner</SelectItem>
+                                            </CustomFormField>
+
+                                        </div>
                                         {/* Date of Birth - Full width */}
                                         <CustomFormField
                                             fieldType={FormFieldType.DATE_Picker}
@@ -542,41 +583,6 @@ const CreateProfilePage: React.FC<ProfileCompletionPageProps> = ({ setPrefs }) =
                                             placeholder="Pick a date"
                                             className="w-full"
                                         />
-
-
-
-                                        {/* Gender - Full width */}
-                                        <CustomFormField
-                                            fieldType={FormFieldType.SELECT}
-                                            control={form.control}
-                                            name="gender"
-                                            label="Gender"
-                                            placeholder="Select gender"
-                                            className="w-full"
-                                        >
-                                            <SelectItem value="Male">Male</SelectItem>
-                                            <SelectItem value="Female">Female</SelectItem>
-                                            <SelectItem value="Others">Others</SelectItem>
-                                        </CustomFormField>
-
-                                        {/* Gender - Full width */}
-                                        <CustomFormField
-                                            fieldType={FormFieldType.SELECT}
-                                            control={form.control}
-                                            name="user_type"
-                                            label="User Type"
-                                            placeholder="Select user type"
-                                            className="w-full"
-                                        >
-                                            <SelectItem value="room_seeker">Room Seeker</SelectItem>
-                                            <SelectItem value="room_sharer">Room Sharer</SelectItem>
-                                            <SelectItem value="property_owner">Property Owner</SelectItem>
-                                        </CustomFormField>
-
-                                        {/* {form.getValues('user_type') === "room_seeker" ?
-                                            
-                                    } */}
-
 
                                     </div>
                                 )}

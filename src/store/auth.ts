@@ -11,6 +11,7 @@ export interface UserPrefs {
   isCompleted?: boolean;
   totalListings?: number;
   theme?: 'light' | 'dark';
+  profile_pic?: string;
 }
 
 interface IAuthStore {

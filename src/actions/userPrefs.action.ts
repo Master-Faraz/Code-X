@@ -8,7 +8,7 @@ type UserPrefs = {
   id?: string;
   isCompleted?: boolean;
   totalListings?: number;
-  theme?: 'light' | 'dark';
+  profile_pic?: string;
   // credits?: number;
 };
 
@@ -22,7 +22,8 @@ export async function createDefaultUserPrefs(userID: string) {
     const response = await users.updatePrefs(userID, {
       id: '',
       isCompleted: false,
-      totalListings: 0
+      totalListings: 0,
+      profile_pic: ''
     });
 
     return createSuccessResponse('Default user preferences created successfully', response, 'createDefaultUserPrefs', 201);
